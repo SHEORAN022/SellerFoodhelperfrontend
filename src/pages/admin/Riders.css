@@ -1,0 +1,59 @@
+.riders-page {
+  background: #fff;
+  padding: 20px;
+  border-radius: 10px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 15px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th, td {
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+}
+
+.badge {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+}
+
+.online { background: #dcfce7; color: #166534; }
+.offline { background: #fee2e2; color: #991b1b; }
+.on_delivery { background: #dbeafe; color: #1e40af; }
+
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card {
+  background: #fff;
+  padding: 20px;
+  width: 400px;
+  border-radius: 10px;
+}
+
+.card input, .card select {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 10px;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}

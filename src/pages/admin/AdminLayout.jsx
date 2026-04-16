@@ -1,1026 +1,6 @@
 
-// // // // // import React, { useState, useEffect } from "react";
-// // // // // import { Link, Outlet, useNavigate } from "react-router-dom";
-// // // // // import {
-// // // // //   Users,
-// // // // //   List,
-// // // // //   BarChart2,
-// // // // //   DollarSign,
-// // // // //   LogOut,
-// // // // //   Menu,
-// // // // //   Grid,
-// // // // //   Package,
-// // // // //   FileText,
-// // // // //   Clock,
-// // // // // } from "react-feather";
-
-// // // // // export default function AdminLayout() {
-// // // // //   const navigate = useNavigate();
-
-// // // // //   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-// // // // //   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-// // // // //   const [hoveredLink, setHoveredLink] = useState(null);
-
-// // // // //   const logout = () => {
-// // // // //     localStorage.clear();
-// // // // //     navigate("/login", { replace: true });
-// // // // //   };
-
-// // // // //   // Detect screen size
-// // // // //   useEffect(() => {
-// // // // //     const handler = () => setIsMobile(window.innerWidth < 768);
-// // // // //     window.addEventListener("resize", handler);
-// // // // //     return () => window.removeEventListener("resize", handler);
-// // // // //   }, []);
-
-// // // // //   // If mobile, keep sidebar closed initially
-// // // // //   useEffect(() => {
-// // // // //     if (isMobile) setIsSidebarOpen(false);
-// // // // //     else setIsSidebarOpen(true);
-// // // // //   }, [isMobile]);
-
-// // // // //   return (
-// // // // //     <div style={{ display: "flex", minHeight: "100vh", background: "#f6f9fc" }}>
-
-// // // // //       {/* -------- BACKDROP (Mobile Only) -------- */}
-// // // // //       {isMobile && isSidebarOpen && (
-// // // // //         <div
-// // // // //           onClick={() => setIsSidebarOpen(false)}
-// // // // //           style={{
-// // // // //             position: "fixed",
-// // // // //             top: 0,
-// // // // //             left: 0,
-// // // // //             width: "100%",
-// // // // //             height: "100vh",
-// // // // //             background: "rgba(0,0,0,0.45)",
-// // // // //             zIndex: 90,
-// // // // //           }}
-// // // // //         />
-// // // // //       )}
-
-// // // // //       {/* -------- SIDEBAR -------- */}
-// // // // //       <aside
-// // // // //         style={{
-// // // // //           width: 250,
-// // // // //           background: "linear-gradient(180deg, #0f2e47 0%, #1a4d6f 100%)",
-// // // // //           color: "#fff",
-// // // // //           padding: "24px",
-// // // // //           position: "fixed",
-// // // // //           top: 0,
-// // // // //           left: 0,
-// // // // //           height: "100vh",
-// // // // //           zIndex: 100,
-// // // // //           transition: "transform 0.35s ease",
-// // // // //           transform: isSidebarOpen ? "translateX(0)" : "translateX(-100%)",
-// // // // //           boxShadow: isMobile ? "4px 0 20px rgba(0,0,0,0.3)" : "2px 0 10px rgba(0,0,0,0.1)",
-// // // // //           borderRight: "1px solid rgba(255,255,255,0.1)",
-// // // // //         }}
-// // // // //       >
-// // // // //         {/* HEADER */}
-// // // // //         <div
-// // // // //           style={{
-// // // // //             display: "flex",
-// // // // //             justifyContent: "space-between",
-// // // // //             alignItems: "center",
-// // // // //             paddingBottom: "20px",
-// // // // //             borderBottom: "2px solid rgba(255,255,255,0.15)",
-// // // // //             marginBottom: "8px",
-// // // // //           }}
-// // // // //         >
-// // // // //           <h3 style={{ margin: 0, fontSize: "20px", fontWeight: 700, letterSpacing: "0.5px" }}>Broker Admin</h3>
-
-// // // // //           {isMobile && (
-// // // // //             <button
-// // // // //               onClick={() => setIsSidebarOpen(false)}
-// // // // //               style={{
-// // // // //                 background: "transparent",
-// // // // //                 border: "none",
-// // // // //                 color: "#fff",
-// // // // //                 cursor: "pointer",
-// // // // //                 fontSize: "20px",
-// // // // //               }}
-// // // // //             >
-// // // // //               ✖
-// // // // //             </button>
-// // // // //           )}
-// // // // //         </div>
-
-// // // // //         {/* -------- NAVIGATION -------- */}
-// // // // //         <ul style={{ listStyle: "none", marginTop: 30, padding: 0 }}>
-
-// // // // //           <li style={styles.navItem}>
-// // // // //             <Link
-// // // // //               to="/admin/users"
-// // // // //               style={{
-// // // // //                 ...styles.link,
-// // // // //     background: hoveredLink === 'users'
-// // // // //   ? "linear-gradient(135deg, #983a30 0%, #c0392b 100%)"
-// // // // //   : "transparent",
-// // // // // color: hoveredLink === 'users' ? "#fff" : "#e8f1f8",
-// // // // // borderColor: hoveredLink === 'users' ? "#c0392b" : "transparent",
-
-// // // // //               }}
-// // // // //               onClick={() => isMobile && setIsSidebarOpen(false)}
-// // // // //               onMouseEnter={() => setHoveredLink('users')}
-// // // // //               onMouseLeave={() => setHoveredLink(null)}
-// // // // //             >
-// // // // //               <Users size={18} style={styles.icon} /> Users
-// // // // //             </Link>
-// // // // //           </li>
-
-// // // // //           <li style={styles.navItem}>
-// // // // //             <Link
-// // // // //               to="/admin/Descriptionmanager"
-// // // // //               style={{
-// // // // //                 ...styles.link,
-// // // // //                 background: hoveredLink === 'desc' ? 'rgba(255,255,255,0.15)' : 'transparent',
-// // // // //                 borderColor: hoveredLink === 'desc' ? 'rgba(255,255,255,0.3)' : 'transparent',
-// // // // //               }}
-// // // // //               onClick={() => isMobile && setIsSidebarOpen(false)}
-// // // // //               onMouseEnter={() => setHoveredLink('desc')}
-// // // // //               onMouseLeave={() => setHoveredLink(null)}
-// // // // //             >
-// // // // //               <FileText size={18} style={styles.icon} /> Add Description
-// // // // //             </Link>
-// // // // //           </li>
-
-// // // // //           <li style={styles.navItem}>
-// // // // //             <Link
-// // // // //               to="/admin/CategoryManager"
-// // // // //               style={{
-// // // // //                 ...styles.link,
-// // // // //                 background: hoveredLink === 'catmgr' ? 'rgba(255,255,255,0.15)' : 'transparent',
-// // // // //                 borderColor: hoveredLink === 'catmgr' ? 'rgba(255,255,255,0.3)' : 'transparent',
-// // // // //               }}
-// // // // //               onClick={() => isMobile && setIsSidebarOpen(false)}
-// // // // //               onMouseEnter={() => setHoveredLink('catmgr')}
-// // // // //               onMouseLeave={() => setHoveredLink(null)}
-// // // // //             >
-// // // // //               <Grid size={18} style={styles.icon} /> Add Category
-// // // // //             </Link>
-// // // // //           </li>
-
-// // // // //           <li style={styles.navItem}>
-// // // // //             <Link
-// // // // //               to="/admin/categorylist"
-// // // // //               style={{
-// // // // //                 ...styles.link,
-// // // // //                 background: hoveredLink === 'catlist' ? 'rgba(255,255,255,0.15)' : 'transparent',
-// // // // //                 borderColor: hoveredLink === 'catlist' ? 'rgba(255,255,255,0.3)' : 'transparent',
-// // // // //               }}
-// // // // //               onClick={() => isMobile && setIsSidebarOpen(false)}
-// // // // //               onMouseEnter={() => setHoveredLink('catlist')}
-// // // // //               onMouseLeave={() => setHoveredLink(null)}
-// // // // //             >
-// // // // //               <List size={18} style={styles.icon} /> Category List
-// // // // //             </Link>
-// // // // //           </li>
-
-// // // // //           <li style={styles.navItem}>
-// // // // //             <Link
-// // // // //               to="/admin/priceanalytics"
-// // // // //               style={{
-// // // // //                 ...styles.link,
-// // // // //                 background: hoveredLink === 'analytics' ? 'rgba(255,255,255,0.15)' : 'transparent',
-// // // // //                 borderColor: hoveredLink === 'analytics' ? 'rgba(255,255,255,0.3)' : 'transparent',
-// // // // //               }}
-// // // // //               onClick={() => isMobile && setIsSidebarOpen(false)}
-// // // // //               onMouseEnter={() => setHoveredLink('analytics')}
-// // // // //               onMouseLeave={() => setHoveredLink(null)}
-// // // // //             >
-// // // // //               <BarChart2 size={18} style={styles.icon} /> Analytics
-// // // // //             </Link>
-// // // // //           </li>
-
-// // // // //           <li style={styles.navItem}>
-// // // // //             <Link
-// // // // //               to="/admin/pricelist"
-// // // // //               style={{
-// // // // //                 ...styles.link,
-// // // // //                 background: hoveredLink === 'addprod' ? 'rgba(255,255,255,0.15)' : 'transparent',
-// // // // //                 borderColor: hoveredLink === 'addprod' ? 'rgba(255,255,255,0.3)' : 'transparent',
-// // // // //               }}
-// // // // //               onClick={() => isMobile && setIsSidebarOpen(false)}
-// // // // //               onMouseEnter={() => setHoveredLink('addprod')}
-// // // // //               onMouseLeave={() => setHoveredLink(null)}
-// // // // //             >
-// // // // //               <Package size={18} style={styles.icon} /> Add Product
-// // // // //             </Link>
-// // // // //           </li>
-
-// // // // //           <li style={styles.navItem}>
-// // // // //             <Link
-// // // // //               to="/admin/productlist"
-// // // // //               style={{
-// // // // //                 ...styles.link,
-// // // // //                 background: hoveredLink === 'prodlist' ? 'rgba(255,255,255,0.15)' : 'transparent',
-// // // // //                 borderColor: hoveredLink === 'prodlist' ? 'rgba(255,255,255,0.3)' : 'transparent',
-// // // // //               }}
-// // // // //               onClick={() => isMobile && setIsSidebarOpen(false)}
-// // // // //               onMouseEnter={() => setHoveredLink('prodlist')}
-// // // // //               onMouseLeave={() => setHoveredLink(null)}
-// // // // //             >
-// // // // //               <DollarSign size={18} style={styles.icon} /> Product List
-// // // // //             </Link>
-// // // // //           </li>
-
-// // // // //         </ul>
-
-// // // // //         {/* -------- LOGOUT -------- */}
-// // // // //         <button
-// // // // //           onClick={logout}
-// // // // //           style={{
-// // // // //             background: "linear-gradient(135deg, #983a30ff 0%, #c0392b 100%)",
-// // // // //             border: "1px solid rgba(255,255,255,0.2)",
-// // // // //             padding: "12px 16px",
-// // // // //             color: "#fff",
-// // // // //             borderRadius: 8,
-// // // // //             marginTop: 20,
-// // // // //             cursor: "pointer",
-// // // // //             width: "100%",
-// // // // //             fontWeight: 600,
-// // // // //             display: "flex",
-// // // // //             alignItems: "center",
-// // // // //             justifyContent: "center",
-// // // // //             gap: 8,
-// // // // //             boxShadow: "0 4px 12px rgba(231, 76, 60, 0.3)",
-// // // // //             transition: "all 0.25s ease",
-// // // // //           }}
-// // // // //           onMouseEnter={(e) => {
-// // // // //             e.target.style.transform = "translateY(-2px)";
-// // // // //             e.target.style.boxShadow = "0 6px 16px rgba(231, 76, 60, 0.4)";
-// // // // //           }}
-// // // // //           onMouseLeave={(e) => {
-// // // // //             e.target.style.transform = "translateY(0)";
-// // // // //             e.target.style.boxShadow = "0 4px 12px rgba(231, 76, 60, 0.3)";
-// // // // //           }}
-// // // // //         >
-// // // // //           <LogOut size={18} /> Logout
-// // // // //         </button>
-// // // // //       </aside>
-
-// // // // //       {/* -------- MAIN CONTENT -------- */}
-// // // // //       <main
-// // // // //         style={{
-// // // // //           flex: 1,
-// // // // //           width: "100%",
-// // // // //           marginLeft: !isMobile && isSidebarOpen ? 250 : 0,
-// // // // //           transition: "margin-left 0.35s ease",
-// // // // //         }}
-// // // // //       >
-// // // // //         {/* TOP BAR */}
-// // // // //         <div
-// // // // //           style={{
-// // // // //             background: "#fff",
-// // // // //             padding: "12px 20px",
-// // // // //             boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
-// // // // //             display: "flex",
-// // // // //             alignItems: "center",
-// // // // //             justifyContent: "space-between",
-// // // // //             position: "sticky",
-// // // // //             top: 0,
-// // // // //             zIndex: 50,
-// // // // //             borderBottom: "1px solid #e5e7eb",
-// // // // //           }}
-// // // // //         >
-// // // // //           {/* Hamburger (Desktop + Mobile both) */}
-// // // // //           <button
-// // // // //             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-// // // // //             style={{
-// // // // //               background: "transparent",
-// // // // //               border: "none",
-// // // // //               cursor: "pointer",
-// // // // //               color: "#13385a",
-// // // // //             }}
-// // // // //           >
-// // // // //             <Menu size={26} />
-// // // // //           </button>
-
-// // // // //           <h3 style={{ margin: 0, color: "#13385a", fontWeight: 600 }}>
-// // // // //             Admin Dashboard
-// // // // //           </h3>
-
-// // // // //           <div></div>
-// // // // //         </div>
-
-// // // // //         {/* CONTENT */}
-// // // // //         <div style={{ padding: "24px" }}>
-// // // // //           <Outlet />
-// // // // //         </div>
-// // // // //       </main>
-// // // // //     </div>
-// // // // //   );
-// // // // // }
-
-// // // // // const styles = {
-// // // // //   navItem: {
-// // // // //     padding: "12px 0",
-// // // // //   },
-// // // // //   link: {
-// // // // //     display: "flex",
-// // // // //     alignItems: "center",
-// // // // //     gap: 12,
-// // // // //     color: "#e8f1f8",
-// // // // //     textDecoration: "none",
-// // // // //     fontSize: 15,
-// // // // //     fontWeight: 500,
-// // // // //     padding: "10px 12px",
-// // // // //     borderRadius: 8,
-// // // // //     transition: "all 0.25s ease",
-// // // // //     border: "1px solid transparent",
-// // // // //   },
-// // // // //   icon: {
-// // // // //     minWidth: 20,
-// // // // //   },
-// // // // // };
-// // // // import React, { useState, useEffect } from "react";
-// // // // import { Link, Outlet, useNavigate } from "react-router-dom";
-// // // // import {
-// // // //   Users,
-// // // //   List,
-// // // //   BarChart2,
-// // // //   DollarSign,
-// // // //   LogOut,
-// // // //   Menu,
-// // // //   Grid,
-// // // //   Package,
-// // // //   FileText,
-// // // // } from "react-feather";
-
-// // // // export default function AdminLayout() {
-// // // //   const navigate = useNavigate();
-
-// // // //   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-// // // //   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-// // // //   const [hoveredLink, setHoveredLink] = useState(null);
-
-// // // //   const logout = () => {
-// // // //     localStorage.clear();
-// // // //     navigate("/login", { replace: true });
-// // // //   };
-
-// // // //   useEffect(() => {
-// // // //     const handler = () => setIsMobile(window.innerWidth < 768);
-// // // //     window.addEventListener("resize", handler);
-// // // //     return () => window.removeEventListener("resize", handler);
-// // // //   }, []);
-
-// // // //   useEffect(() => {
-// // // //     if (isMobile) setIsSidebarOpen(false);
-// // // //     else setIsSidebarOpen(true);
-// // // //   }, [isMobile]);
-
-// // // //   // ---- Redirect to Product List by Default ----
-// // // //   useEffect(() => {
-// // // //     if (window.location.pathname === "/admin") {
-// // // //       navigate("/admin/productlist");
-// // // //     }
-// // // //   }, []);
-
-// // // //   // UNIVERSAL HOVER STYLE
-// // // //   const hoverStyle = (isHover) => ({
-// // // //     ...styles.link,
-// // // //     background: isHover
-// // // //       ? "linear-gradient(135deg, #983a30 0%, #c0392b 100%)"
-// // // //       : "transparent",
-// // // //     color: isHover ? "#fff" : "#e8f1f8",
-// // // //     borderColor: isHover ? "#c0392b" : "transparent",
-// // // //   });
-
-// // // //   return (
-// // // //     <div style={{ display: "flex", minHeight: "100vh", background: "#f6f9fc" }}>
-
-// // // //       {isMobile && isSidebarOpen && (
-// // // //         <div
-// // // //           onClick={() => setIsSidebarOpen(false)}
-// // // //           style={{
-// // // //             position: "fixed",
-// // // //             top: 0,
-// // // //             left: 0,
-// // // //             width: "100%",
-// // // //             height: "100vh",
-// // // //             background: "rgba(0,0,0,0.45)",
-// // // //             zIndex: 90,
-// // // //           }}
-// // // //         />
-// // // //       )}
-
-// // // //       {/* SIDEBAR */}
-// // // //       <aside
-// // // //         style={{
-// // // //           width: 250,
-// // // //           background: "linear-gradient(180deg, #0f2e47 0%, #1a4d6f 100%)",
-// // // //           color: "#fff",
-// // // //           padding: "24px",
-// // // //           position: "fixed",
-// // // //           top: 0,
-// // // //           left: 0,
-// // // //           height: "100vh",
-// // // //           zIndex: 100,
-// // // //           transform: isSidebarOpen ? "translateX(0)" : "translateX(-100%)",
-// // // //           transition: "transform 0.35s ease",
-// // // //         }}
-// // // //       >
-// // // //         <div
-// // // //           style={{
-// // // //             display: "flex",
-// // // //             justifyContent: "space-between",
-// // // //             alignItems: "center",
-// // // //             paddingBottom: "20px",
-// // // //             borderBottom: "2px solid rgba(255,255,255,0.15)",
-// // // //           }}
-// // // //         >
-// // // //           <h3 style={{ margin: 0 }}>Broker Admin</h3>
-
-// // // //           {isMobile && (
-// // // //             <button
-// // // //               onClick={() => setIsSidebarOpen(false)}
-// // // //               style={{
-// // // //                 background: "transparent",
-// // // //                 border: "none",
-// // // //                 color: "#fff",
-// // // //                 cursor: "pointer",
-// // // //               }}
-// // // //             >
-// // // //               ✖
-// // // //             </button>
-// // // //           )}
-// // // //         </div>
-
-// // // //         {/* NAVIGATION */}
-// // // //         <ul style={{ listStyle: "none", marginTop: 30, padding: 0 }}>
-// // // //           {[
-// // // //             { to: "/admin/users", label: "Users", icon: <Users size={18} /> },
-// // // //             { to: "/admin/Descriptionmanager", label: "Add Description", icon: <FileText size={18} /> },
-// // // //             { to: "/admin/CategoryManager", label: "Add Category", icon: <Grid size={18} /> },
-// // // //             { to: "/admin/categorylist", label: "Category List", icon: <List size={18} /> },
-// // // //             { to: "/admin/priceanalytics", label: "Analytics", icon: <BarChart2 size={18} /> },
-// // // //             { to: "/admin/pricelist", label: "Add Product", icon: <Package size={18} /> },
-// // // //             { to: "/admin/productlist", label: "Product List", icon: <DollarSign size={18} /> },
-// // // //           ].map((item, i) => (
-// // // //             <li key={i} style={styles.navItem}>
-// // // //               <Link
-// // // //                 to={item.to}
-// // // //                 style={hoverStyle(hoveredLink === i)}
-// // // //                 onMouseEnter={() => setHoveredLink(i)}
-// // // //                 onMouseLeave={() => setHoveredLink(null)}
-// // // //                 onClick={() => isMobile && setIsSidebarOpen(false)}
-// // // //               >
-// // // //                 {item.icon} {item.label}
-// // // //               </Link>
-// // // //             </li>
-// // // //           ))}
-// // // //         </ul>
-
-// // // //         {/* LOGOUT */}
-// // // //         <button
-// // // //           onClick={logout}
-// // // //           style={styles.logout}
-// // // //         >
-// // // //           <LogOut size={18} /> Logout
-// // // //         </button>
-// // // //       </aside>
-
-// // // //       {/* MAIN CONTENT */}
-// // // //       <main
-// // // //         style={{
-// // // //           flex: 1,
-// // // //           width: "100%",
-// // // //           marginLeft: !isMobile && isSidebarOpen ? 250 : 0,
-// // // //           transition: "margin-left 0.35s ease",
-// // // //         }}
-// // // //       >
-// // // //         <div
-// // // //           style={{
-// // // //             background: "#fff",
-// // // //             padding: "12px 20px",
-// // // //             display: "flex",
-// // // //             alignItems: "center",
-// // // //             justifyContent: "space-between",
-// // // //             position: "sticky",
-// // // //             top: 0,
-// // // //           }}
-// // // //         >
-// // // //           <button
-// // // //             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-// // // //             style={{ background: "transparent", border: "none", cursor: "pointer" }}
-// // // //           >
-// // // //             <Menu size={26} />
-// // // //           </button>
-
-// // // //           <h3 style={{ margin: 0 }}>Admin Dashboard</h3>
-
-// // // //           <div></div>
-// // // //         </div>
-
-// // // //         <div style={{ padding: "24px" }}>
-// // // //           <Outlet />
-// // // //         </div>
-// // // //       </main>
-// // // //     </div>
-// // // //   );
-// // // // }
-
-// // // // const styles = {
-// // // //   navItem: { padding: "12px 0" },
-
-// // // //   link: {
-// // // //     display: "flex",
-// // // //     alignItems: "center",
-// // // //     gap: 12,
-// // // //     textDecoration: "none",
-// // // //     fontSize: 15,
-// // // //     fontWeight: 500,
-// // // //     padding: "10px 12px",
-// // // //     borderRadius: 8,
-// // // //     border: "1px solid transparent",
-// // // //     transition: "all 0.25s ease",
-// // // //   },
-
-// // // //   logout: {
-// // // //     background: "linear-gradient(135deg, #983a30 0%, #c0392b 100%)",
-// // // //     border: "1px solid rgba(255,255,255,0.2)",
-// // // //     padding: "12px 16px",
-// // // //     color: "#fff",
-// // // //     borderRadius: 8,
-// // // //     marginTop: 20,
-// // // //     cursor: "pointer",
-// // // //     width: "100%",
-// // // //     fontWeight: 600,
-// // // //     display: "flex",
-// // // //     alignItems: "center",
-// // // //     justifyContent: "center",
-// // // //     gap: 8,
-// // // //   },
-// // // // };
-
-
-// // // // import React, { useState, useEffect } from "react";
-// // // // import { Link, Outlet, useNavigate } from "react-router-dom";
-// // // // import {
-// // // //   Users,
-// // // //   List,
-// // // //   BarChart2,
-// // // //   DollarSign,
-// // // //   LogOut,
-// // // //   Menu,
-// // // //   Grid,
-// // // //   Package,
-// // // //   FileText,
-// // // // } from "react-feather";
-
-// // // // export default function AdminLayout() {
-// // // //   const navigate = useNavigate();
-
-// // // //   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-// // // //   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-// // // //   const [hoveredLink, setHoveredLink] = useState(null);
-
-// // // //   const logout = () => {
-// // // //     localStorage.clear();
-// // // //     navigate("/login", { replace: true });
-// // // //   };
-
-// // // //   useEffect(() => {
-// // // //     const handler = () => setIsMobile(window.innerWidth < 768);
-// // // //     window.addEventListener("resize", handler);
-// // // //     return () => window.removeEventListener("resize", handler);
-// // // //   }, []);
-
-// // // //   useEffect(() => {
-// // // //     if (isMobile) setIsSidebarOpen(false);
-// // // //     else setIsSidebarOpen(true);
-// // // //   }, [isMobile]);
-
-// // // //   // ALWAYS redirect to pricelist when entering admin
-// // // //   useEffect(() => {
-// // // //     const current = window.location.pathname;
-
-// // // //     // Redirect if user opens /admin OR /admin/users OR any random admin page
-// // // //     if (
-// // // //       current === "/admin" ||
-// // // //       current === "/admin/" ||
-// // // //       current === "/admin/users"
-// // // //     ) {
-// // // //       navigate("/admin/pricelist", { replace: true });
-// // // //     }
-// // // //   }, []);
-
-// // // //   // universal link hover
-// // // //   const hoverStyle = (isHover) => ({
-// // // //     ...styles.link,
-// // // //     background: isHover
-// // // //       ? "linear-gradient(135deg, #983a30 0%, #c0392b 100%)"
-// // // //       : "transparent",
-// // // //     color: isHover ? "#fff" : "#e8f1f8",
-// // // //     borderColor: isHover ? "#c0392b" : "transparent",
-// // // //   });
-
-// // // //   return (
-// // // //     <div style={{ display: "flex", minHeight: "100vh", background: "#f6f9fc" }}>
-
-// // // //       {isMobile && isSidebarOpen && (
-// // // //         <div
-// // // //           onClick={() => setIsSidebarOpen(false)}
-// // // //           style={{
-// // // //             position: "fixed",
-// // // //             top: 0,
-// // // //             left: 0,
-// // // //             width: "100%",
-// // // //             height: "100vh",
-// // // //             background: "rgba(0,0,0,0.45)",
-// // // //             zIndex: 90,
-// // // //           }}
-// // // //         />
-// // // //       )}
-
-// // // //       <aside
-// // // //         style={{
-// // // //           width: 250,
-// // // //           background: "linear-gradient(180deg, #0f2e47 0%, #1a4d6f 100%)",
-// // // //           color: "#fff",
-// // // //           padding: "24px",
-// // // //           position: "fixed",
-// // // //           top: 0,
-// // // //           left: 0,
-// // // //           height: "100vh",
-// // // //           zIndex: 100,
-// // // //           transform: isSidebarOpen ? "translateX(0)" : "translateX(-100%)",
-// // // //           transition: "transform 0.35s ease",
-// // // //         }}
-// // // //       >
-// // // //         <div
-// // // //           style={{
-// // // //             display: "flex",
-// // // //             justifyContent: "space-between",
-// // // //             alignItems: "center",
-// // // //             paddingBottom: "20px",
-// // // //             borderBottom: "2px solid rgba(255,255,255,0.15)",
-// // // //           }}
-// // // //         >
-// // // //           <h3 style={{ margin: 0 }}>Broker Admin</h3>
-
-// // // //           {isMobile && (
-// // // //             <button
-// // // //               onClick={() => setIsSidebarOpen(false)}
-// // // //               style={{
-// // // //                 background: "transparent",
-// // // //                 border: "none",
-// // // //                 color: "#fff",
-// // // //                 cursor: "pointer",
-// // // //                 fontSize: "20px",
-// // // //               }}
-// // // //             >
-// // // //               ✖
-// // // //             </button>
-// // // //           )}
-// // // //         </div>
-
-// // // //         <ul style={{ listStyle: "none", marginTop: 30, padding: 0 }}>
-// // // //           {[
-// // // //             { to: "/admin/users", label: "Users", icon: <Users size={18} /> },
-            
-// // // //             {
-// // // //               {/* to: "/admin/Descriptionmanager",
-// // // //               label: "Add Description",
-// // // //               icon: <FileText size={18} />, */}
-// // // //             },
-
-// // // //             {
-// // // //               to: "/admin/CategoryManager",
-// // // //               label: "Add Category",
-// // // //               icon: <Grid size={18} />,
-// // // //             },
-// // // //             {
-// // // //               {/* to: "/admin/categorylist",
-// // // //               label: "Category List",
-// // // //               icon: <List size={18} />, */}
-// // // //             },
-// // // //             {
-// // // //               to: "/admin/priceanalytics",
-// // // //               label: "Analytics",
-// // // //               icon: <BarChart2 size={18} />,
-// // // //             },
-// // // //             {
-// // // //               to: "/admin/pricelist",
-// // // //               label: "Add Product",
-// // // //               icon: <Package size={18} />,
-// // // //             },
-// // // //             {
-// // // //               {/* to: "/admin/productlist",
-// // // //               label: "Product List",
-// // // //               icon: <DollarSign size={18} />, */}
-// // // //             },
-// // // //           ].map((item, i) => (
-// // // //             <li key={i} style={styles.navItem}>
-// // // //               <Link
-// // // //                 to={item.to}
-// // // //                 style={hoverStyle(hoveredLink === i)}
-// // // //                 onMouseEnter={() => setHoveredLink(i)}
-// // // //                 onMouseLeave={() => setHoveredLink(null)}
-// // // //                 onClick={() => isMobile && setIsSidebarOpen(false)}
-// // // //               >
-// // // //                 {item.icon} {item.label}
-// // // //               </Link>
-// // // //             </li>
-// // // //           ))}
-// // // //         </ul>
-
-// // // //         <button onClick={logout} style={styles.logout}>
-// // // //           <LogOut size={18} /> Logout
-// // // //         </button>
-// // // //       </aside>
-
-// // // //       <main
-// // // //         style={{
-// // // //           flex: 1,
-// // // //           width: "100%",
-// // // //           marginLeft: !isMobile && isSidebarOpen ? 250 : 0,
-// // // //           transition: "margin-left 0.35s ease",
-// // // //         }}
-// // // //       >
-// // // //         <div
-// // // //           style={{
-// // // //             background: "#fff",
-// // // //             padding: "12px 20px",
-// // // //             display: "flex",
-// // // //             alignItems: "center",
-// // // //             justifyContent: "space-between",
-// // // //             position: "sticky",
-// // // //             top: 0,
-// // // //           }}
-// // // //         >
-// // // //           <button
-// // // //             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-// // // //             style={{ background: "transparent", border: "none", cursor: "pointer" }}
-// // // //           >
-// // // //             <Menu size={26} />
-// // // //           </button>
-
-// // // //           <h3 style={{ margin: 0 }}>Admin Dashboard</h3>
-
-// // // //           <div></div>
-// // // //         </div>
-
-// // // //         <div style={{ padding: "24px" }}>
-// // // //           <Outlet />
-// // // //         </div>
-// // // //       </main>
-// // // //     </div>
-// // // //   );
-// // // // }
-
-// // // // const styles = {
-// // // //   navItem: {
-// // // //     padding: "12px 0",
-// // // //   },
-// // // //   link: {
-// // // //     display: "flex",
-// // // //     alignItems: "center",
-// // // //     gap: 12,
-// // // //     color: "#e8f1f8",
-// // // //     textDecoration: "none",
-// // // //     fontSize: 15,
-// // // //     fontWeight: 500,
-// // // //     padding: "10px 12px",
-// // // //     borderRadius: 8,
-// // // //     border: "1px solid transparent",
-// // // //     transition: "all 0.25s ease",
-// // // //   },
-// // // //   logout: {
-// // // //     background: "linear-gradient(135deg, #983a30 0%, #c0392b 100%)",
-// // // //     border: "1px solid rgba(255,255,255,0.2)",
-// // // //     padding: "12px 16px",
-// // // //     color: "#fff",
-// // // //     borderRadius: 8,
-// // // //     marginTop: 20,
-// // // //     cursor: "pointer",
-// // // //     width: "100%",
-// // // //     fontWeight: 600,
-// // // //     display: "flex",
-// // // //     alignItems: "center",
-// // // //     justifyContent: "center",
-// // // //     gap: 8,
-// // // //   },
-// // // // };
-
-
-// // // import React, { useState, useEffect } from "react";
-// // // import { Link, Outlet, useNavigate } from "react-router-dom";
-// // // import {
-// // //   Users,
-// // //   BarChart2,
-// // //   LogOut,
-// // //   Menu,
-// // //   Grid,
-// // //   Package,
-// // // } from "react-feather";
-
-// // // export default function AdminLayout() {
-// // //   const navigate = useNavigate();
-
-// // //   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-// // //   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-// // //   const [hoveredLink, setHoveredLink] = useState(null);
-
-// // //   const logout = () => {
-// // //     localStorage.clear();
-// // //     navigate("/login", { replace: true });
-// // //   };
-
-// // //   useEffect(() => {
-// // //     const handler = () => setIsMobile(window.innerWidth < 768);
-// // //     window.addEventListener("resize", handler);
-// // //     return () => window.removeEventListener("resize", handler);
-// // //   }, []);
-
-// // //   useEffect(() => {
-// // //     if (isMobile) setIsSidebarOpen(false);
-// // //     else setIsSidebarOpen(true);
-// // //   }, [isMobile]);
-
-// // //   // redirect logic
-// // //   useEffect(() => {
-// // //     const current = window.location.pathname;
-// // //     if (
-// // //       current === "/admin" ||
-// // //       current === "/admin/" ||
-// // //       current === "/admin/users"
-// // //     ) {
-// // //       navigate("/admin/pricelist", { replace: true });
-// // //     }
-// // //   }, []);
-
-// // //   const hoverStyle = (isHover) => ({
-// // //     ...styles.link,
-// // //     background: isHover
-// // //       ? "linear-gradient(135deg, #983a30 0%, #c0392b 100%)"
-// // //       : "transparent",
-// // //     color: isHover ? "#fff" : "#e8f1f8",
-// // //     borderColor: isHover ? "#c0392b" : "transparent",
-// // //   });
-
-// // //   const sidebarItems = [
-// // //     { to: "/admin/users", label: "Users", icon: <Users size={18} /> },
-// // //     { to: "/admin/CategoryManager", label: "Add Category", icon: <Grid size={18} /> },
-// // //     { to: "/admin/priceanalytics", label: "Analytics", icon: <BarChart2 size={18} /> },
-// // //     { to: "/admin/pricelist", label: "Add Product", icon: <Package size={18} /> },
-// // //   ];
-
-// // //   return (
-// // //     <div style={{ display: "flex", minHeight: "100vh", background: "#f6f9fc" }}>
-// // //       {isMobile && isSidebarOpen && (
-// // //         <div
-// // //           onClick={() => setIsSidebarOpen(false)}
-// // //           style={{
-// // //             position: "fixed",
-// // //             top: 0,
-// // //             left: 0,
-// // //             width: "100%",
-// // //             height: "100vh",
-// // //             background: "rgba(0,0,0,0.45)",
-// // //             zIndex: 90,
-// // //           }}
-// // //         />
-// // //       )}
-
-// // //       <aside
-// // //         style={{
-// // //           width: 250,
-// // //           background: "linear-gradient(180deg, #0f2e47 0%, #1a4d6f 100%)",
-// // //           color: "#fff",
-// // //           padding: "24px",
-// // //           position: "fixed",
-// // //           top: 0,
-// // //           left: 0,
-// // //           height: "100vh",
-// // //           zIndex: 100,
-// // //           transform: isSidebarOpen ? "translateX(0)" : "translateX(-100%)",
-// // //           transition: "transform 0.35s ease",
-// // //         }}
-// // //       >
-// // //         <div
-// // //           style={{
-// // //             display: "flex",
-// // //             justifyContent: "space-between",
-// // //             alignItems: "center",
-// // //             paddingBottom: "20px",
-// // //             borderBottom: "2px solid rgba(255,255,255,0.15)",
-// // //           }}
-// // //         >
-// // //           <h3 style={{ margin: 0 }}>Broker Admin</h3>
-
-// // //           {isMobile && (
-// // //             <button
-// // //               onClick={() => setIsSidebarOpen(false)}
-// // //               style={{
-// // //                 background: "transparent",
-// // //                 border: "none",
-// // //                 color: "#fff",
-// // //                 cursor: "pointer",
-// // //                 fontSize: "20px",
-// // //               }}
-// // //             >
-// // //               ✖
-// // //             </button>
-// // //           )}
-// // //         </div>
-
-// // //         <ul style={{ listStyle: "none", marginTop: 30, padding: 0 }}>
-// // //           {sidebarItems.map((item, i) => (
-// // //             <li key={i} style={styles.navItem}>
-// // //               <Link
-// // //                 to={item.to}
-// // //                 style={hoverStyle(hoveredLink === i)}
-// // //                 onMouseEnter={() => setHoveredLink(i)}
-// // //                 onMouseLeave={() => setHoveredLink(null)}
-// // //                 onClick={() => isMobile && setIsSidebarOpen(false)}
-// // //               >
-// // //                 {item.icon} {item.label}
-// // //               </Link>
-// // //             </li>
-// // //           ))}
-// // //         </ul>
-
-// // //         <button onClick={logout} style={styles.logout}>
-// // //           <LogOut size={18} /> Logout
-// // //         </button>
-// // //       </aside>
-
-// // //       <main
-// // //         style={{
-// // //           flex: 1,
-// // //           width: "100%",
-// // //           marginLeft: !isMobile && isSidebarOpen ? 250 : 0,
-// // //           transition: "margin-left 0.35s ease",
-// // //         }}
-// // //       >
-// // //         <div
-// // //           style={{
-// // //             background: "#fff",
-// // //             padding: "12px 20px",
-// // //             display: "flex",
-// // //             alignItems: "center",
-// // //             justifyContent: "space-between",
-// // //             position: "sticky",
-// // //             top: 0,
-// // //           }}
-// // //         >
-// // //           <button
-// // //             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-// // //             style={{ background: "transparent", border: "none", cursor: "pointer" }}
-// // //           >
-// // //             <Menu size={26} />
-// // //           </button>
-
-// // //           <h3 style={{ margin: 0 }}>Admin Dashboard</h3>
-// // //           <div></div>
-// // //         </div>
-
-// // //         <div style={{ padding: "24px" }}>
-// // //           <Outlet />
-// // //         </div>
-// // //       </main>
-// // //     </div>
-// // //   );
-// // // }
-
-// // // const styles = {
-// // //   navItem: {
-// // //     padding: "12px 0",
-// // //   },
-// // //   link: {
-// // //     display: "flex",
-// // //     alignItems: "center",
-// // //     gap: 12,
-// // //     color: "#e8f1f8",
-// // //     textDecoration: "none",
-// // //     fontSize: 15,
-// // //     fontWeight: 500,
-// // //     padding: "10px 12px",
-// // //     borderRadius: 8,
-// // //     border: "1px solid transparent",
-// // //     transition: "all 0.25s ease",
-// // //   },
-// // //   logout: {
-// // //     background: "linear-gradient(135deg, #983a30 0%, #c0392b 100%)",
-// // //     border: "1px solid rgba(255,255,255,0.2)",
-// // //     padding: "12px 16px",
-// // //     color: "#fff",
-// // //     borderRadius: 8,
-// // //     marginTop: 20,
-// // //     cursor: "pointer",
-// // //     width: "100%",
-// // //     fontWeight: 600,
-// // //     display: "flex",
-// // //     alignItems: "center",
-// // //     justifyContent: "center",
-// // //     gap: 8,
-// // //   },
-// // // };
-
-// // import React, { useState, useEffect, useRef } from "react";
-// // import { Link, Outlet, useNavigate } from "react-router-dom";
+// // import React, { useState, useEffect } from "react";
+// // import { Link, Outlet, useNavigate, useLocation } from "react-router-dom";
 // // import {
 // //   Users,
 // //   BarChart2,
@@ -1029,26 +9,26 @@
 // //   Grid,
 // //   Package,
 // //   User,
-// //   Settings,
+// //   CreditCard, 
+// //   Home, 
+// //   Truck,
+// //   FileText, 
 // // } from "react-feather";
 
 // // export default function AdminLayout() {
 // //   const navigate = useNavigate();
+// //   const location = useLocation();
 
 // //   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 // //   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 // //   const [hoveredLink, setHoveredLink] = useState(null);
-
-// //   // 🔹 profile dropdown
-// //   const [openProfile, setOpenProfile] = useState(false);
-// //   const profileRef = useRef(null);
 
 // //   const logout = () => {
 // //     localStorage.clear();
 // //     navigate("/login", { replace: true });
 // //   };
 
-// //   // responsive
+// //   /* ================= RESPONSIVE ================= */
 // //   useEffect(() => {
 // //     const handler = () => setIsMobile(window.innerWidth < 768);
 // //     window.addEventListener("resize", handler);
@@ -1059,47 +39,59 @@
 // //     setIsSidebarOpen(!isMobile);
 // //   }, [isMobile]);
 
-// //   // redirect
-// //   useEffect(() => {
-// //     const current = window.location.pathname;
-// //     if (
-// //       current === "/admin" ||
-// //       current === "/admin/" ||
-// //       current === "/admin/users"
-// //     ) {
-// //       navigate("/admin/pricelist", { replace: true });
-// //     }
-// //   }, [navigate]);
-
-// //   // close profile on outside click
-// //   useEffect(() => {
-// //     const handler = (e) => {
-// //       if (profileRef.current && !profileRef.current.contains(e.target)) {
-// //         setOpenProfile(false);
-// //       }
-// //     };
-// //     document.addEventListener("mousedown", handler);
-// //     return () => document.removeEventListener("mousedown", handler);
-// //   }, []);
-
-// //   const hoverStyle = (isHover) => ({
+// //   const hoverStyle = (isHover, active) => ({
 // //     ...styles.link,
-// //     background: isHover
+// //     background: active
 // //       ? "linear-gradient(135deg, #983a30 0%, #c0392b 100%)"
+// //       : isHover
+// //       ? "rgba(255,255,255,0.15)"
 // //       : "transparent",
-// //     color: isHover ? "#fff" : "#e8f1f8",
+// //     color: "#fff",
 // //   });
 
 // //   const sidebarItems = [
+// //     { to: "/admin", label: "Dashboard", icon: <BarChart2 size={18} /> },
 // //     { to: "/admin/users", label: "Users", icon: <Users size={18} /> },
-// //     { to: "/admin/CategoryManager", label: "Add Category", icon: <Grid size={18} /> },
-// //     { to: "/admin/priceanalytics", label: "Analytics", icon: <BarChart2 size={18} /> },
-// //     { to: "/admin/pricelist", label: "Add Product", icon: <Package size={18} /> },
+// //     { to: "/admin/stores", label: "Stores / Warehouse", icon: <Home size={18} /> },
+// //     { to: "/admin/riders", label: "Delivery Partners", icon: <Truck size={18} /> },
+// //     {
+// //       to: "/admin/CategoryManager",
+// //       label: "Add Category",
+// //       icon: <Grid size={18} />,
+// //     },
+// //     {
+// //       to: "/admin/priceanalytics",
+// //       label: "Analytics",
+// //       icon: <BarChart2 size={18} />,
+// //     },
+// //     {
+// //       to: "/admin/pricelist",
+// //       label: "Add Product",
+// //       icon: <Package size={18} />,
+// //     },
+// //     {
+// //   to: "/admin/orders",
+// //   label: "Orders",
+// //   icon: <Package size={18} />,
+// // },
+
+// // {
+// //   to: "/admin/payments",
+// //   label: "Payments",
+// //   icon: <CreditCard size={18} />,
+// // },
+// //   { to: "/admin/gst", label: "GST & Discounts", icon: <CreditCard size={18} /> },
+// //   {
+// //   to: "/admin/inventory",
+// //   label: "Inventory",
+// //   icon: <Package size={18} />,
+// // },
+// // { to: "/admin/reports", label: "Reports", icon: <FileText size={18}/> },
 // //   ];
 
 // //   return (
 // //     <div style={{ display: "flex", minHeight: "100vh", background: "#f6f9fc" }}>
-// //       {/* overlay */}
+// //       {/* ================= OVERLAY ================= */}
 // //       {isMobile && isSidebarOpen && (
 // //         <div
 // //           onClick={() => setIsSidebarOpen(false)}
@@ -1112,7 +104,7 @@
 // //         />
 // //       )}
 
-// //       {/* sidebar */}
+// //       {/* ================= SIDEBAR ================= */}
 // //       <aside
 // //         style={{
 // //           width: 250,
@@ -1126,22 +118,26 @@
 // //           transition: "0.35s",
 // //         }}
 // //       >
-// //         <h3>Broker Admin</h3>
+// //         <h3>AdminPanel</h3>
 
 // //         <ul style={{ listStyle: "none", marginTop: 30, padding: 0 }}>
-// //           {sidebarItems.map((item, i) => (
-// //             <li key={i} style={styles.navItem}>
-// //               <Link
-// //                 to={item.to}
-// //                 style={hoverStyle(hoveredLink === i)}
-// //                 onMouseEnter={() => setHoveredLink(i)}
-// //                 onMouseLeave={() => setHoveredLink(null)}
-// //                 onClick={() => isMobile && setIsSidebarOpen(false)}
-// //               >
-// //                 {item.icon} {item.label}
-// //               </Link>
-// //             </li>
-// //           ))}
+// //           {sidebarItems.map((item, i) => {
+// //             const active = location.pathname === item.to;
+
+// //             return (
+// //               <li key={i} style={styles.navItem}>
+// //                 <Link
+// //                   to={item.to}
+// //                   style={hoverStyle(hoveredLink === i, active)}
+// //                   onMouseEnter={() => setHoveredLink(i)}
+// //                   onMouseLeave={() => setHoveredLink(null)}
+// //                   onClick={() => isMobile && setIsSidebarOpen(false)}
+// //                 >
+// //                   {item.icon} {item.label}
+// //                 </Link>
+// //               </li>
+// //             );
+// //           })}
 // //         </ul>
 
 // //         <button onClick={logout} style={styles.logout}>
@@ -1149,7 +145,7 @@
 // //         </button>
 // //       </aside>
 
-// //       {/* main */}
+// //       {/* ================= MAIN ================= */}
 // //       <main
 // //         style={{
 // //           flex: 1,
@@ -1157,7 +153,7 @@
 // //           transition: "0.35s",
 // //         }}
 // //       >
-// //         {/* header */}
+// //         {/* ================= HEADER ================= */}
 // //         <div
 // //           style={{
 // //             background: "#fff",
@@ -1179,48 +175,27 @@
 
 // //           <h3 style={{ margin: 0 }}>Admin Dashboard</h3>
 
-// //           {/* profile */}
-// //           <div ref={profileRef} style={{ position: "relative" }}>
-// //             <div
-// //               onClick={() => setOpenProfile(!openProfile)}
-// //               style={{
-// //                 width: 40,
-// //                 height: 40,
-// //                 borderRadius: "50%",
-// //                 background: "#f1f5f9",
-// //                 display: "flex",
-// //                 alignItems: "center",
-// //                 justifyContent: "center",
-// //                 cursor: "pointer",
-// //                 border: "1px solid #e5e7eb",
-// //               }}
-// //             >
-// //               <User size={20} />
-// //             </div>
-
-// //             {openProfile && (
-// //               <div
-// //                 style={{
-// //                   position: "absolute",
-// //                   right: 0,
-// //                   top: 48,
-// //                   width: 160,
-// //                   background: "#fff",
-// //                   borderRadius: 8,
-// //                   boxShadow: "0 10px 25px rgba(0,0,0,0.15)",
-// //                   overflow: "hidden",
-// //                 }}
-// //               >
-// //                 <div style={menuItem}><User size={16} /> Profile</div>
-// //                 <div style={menuItem}><Settings size={16} /> Settings</div>
-// //                 <div style={{ ...menuItem, color: "#ef4444" }} onClick={logout}>
-// //                   <LogOut size={16} /> Logout
-// //                 </div>
-// //               </div>
-// //             )}
+// //           {/* PROFILE */}
+// //           <div
+// //             onClick={() => navigate("/admin/update-password")}
+// //             style={{
+// //               width: 40,
+// //               height: 40,
+// //               borderRadius: "50%",
+// //               background: "#f1f5f9",
+// //               display: "flex",
+// //               alignItems: "center",
+// //               justifyContent: "center",
+// //               cursor: "pointer",
+// //               border: "1px solid #e5e7eb",
+// //             }}
+// //             title="Update Password"
+// //           >
+// //             <User size={20} />
 // //           </div>
 // //         </div>
 
+// //         {/* ================= CONTENT ================= */}
 // //         <div style={{ padding: 24 }}>
 // //           <Outlet />
 // //         </div>
@@ -1229,27 +204,21 @@
 // //   );
 // // }
 
-// // const menuItem = {
-// //   padding: "10px 14px",
-// //   display: "flex",
-// //   alignItems: "center",
-// //   gap: 10,
-// //   cursor: "pointer",
-// //   fontSize: 14,
-// //   borderBottom: "1px solid #f1f5f9",
-// // };
+// // /* ================= STYLES ================= */
 
 // // const styles = {
-// //   navItem: { padding: "12px 0" },
+// //   navItem: {
+// //     padding: "10px 0",
+// //   },
 // //   link: {
 // //     display: "flex",
 // //     alignItems: "center",
 // //     gap: 12,
-// //     color: "#e8f1f8",
+// //     color: "#fff",
 // //     textDecoration: "none",
 // //     fontSize: 15,
 // //     fontWeight: 500,
-// //     padding: "10px 12px",
+// //     padding: "10px 14px",
 // //     borderRadius: 8,
 // //     transition: "0.25s",
 // //   },
@@ -1271,7 +240,7 @@
 
 
 // import React, { useState, useEffect } from "react";
-// import { Link, Outlet, useNavigate } from "react-router-dom";
+// import { Link, Outlet, useNavigate, useLocation } from "react-router-dom";
 // import {
 //   Users,
 //   BarChart2,
@@ -1280,21 +249,22 @@
 //   Grid,
 //   Package,
 //   User,
+//   CreditCard,
+//   Home,
+//   Truck,
+//   FileText,
+//   Headphones,
 // } from "react-feather";
 
 // export default function AdminLayout() {
 //   const navigate = useNavigate();
+//   const location = useLocation();
 
 //   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 //   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 //   const [hoveredLink, setHoveredLink] = useState(null);
 
-//   const logout = () => {
-//     localStorage.clear();
-//     navigate("/login", { replace: true });
-//   };
-
-//   // ================= RESPONSIVE =================
+//   /* ================= RESPONSIVE ================= */
 //   useEffect(() => {
 //     const handler = () => setIsMobile(window.innerWidth < 768);
 //     window.addEventListener("resize", handler);
@@ -1305,92 +275,90 @@
 //     setIsSidebarOpen(!isMobile);
 //   }, [isMobile]);
 
-//   // ================= REDIRECT =================
-//   useEffect(() => {
-//     const current = window.location.pathname;
-//    if (current === "/admin" || current === "/admin/") {
-//   navigate("/admin/pricelist", { replace: true });
-// }
-
-//   }, [navigate]);
-
-//   const hoverStyle = (isHover) => ({
-//     ...styles.link,
-//     background: isHover
-//       ? "linear-gradient(135deg, #983a30 0%, #c0392b 100%)"
-//       : "transparent",
-//     color: isHover ? "#fff" : "#e8f1f8",
-//   });
+//   const logout = () => {
+//     localStorage.clear();
+//     navigate("/login", { replace: true });
+//   };
 
 //   const sidebarItems = [
-//     { to: "/admin/Dashboard", label: "Dashboard", icon: <BarChart2 size={18} /> },
+//     { to: "/admin", label: "Dashboard", icon: <BarChart2 size={18} /> },
 //     { to: "/admin/users", label: "Users", icon: <Users size={18} /> },
-//     {
-//       to: "/admin/CategoryManager",
-//       label: "Add Category",
-//       icon: <Grid size={18} />,
-//     },
-//     {
-//       to: "/admin/priceanalytics",
-//       label: "Analytics",
-//       icon: <BarChart2 size={18} />,
-//     },
-//     {
-//       to: "/admin/pricelist",
-//       label: "Add Product",
-//       icon: <Package size={18} />,
-//     },
+//     { to: "/admin/stores", label: "Stores / Warehouse", icon: <Home size={18} /> },
+//     { to: "/admin/riders", label: "Delivery Partners", icon: <Truck size={18} /> },
+//     { to: "/admin/CategoryManager", label: "Add Category", icon: <Grid size={18} /> },
+//     { to: "/admin/priceanalytics", label: "Analytics", icon: <BarChart2 size={18} /> },
+//     { to: "/admin/pricelist", label: "Add Product", icon: <Package size={18} /> },
+//     { to: "/admin/orders", label: "Orders", icon: <Package size={18} /> },
+//     { to: "/admin/payments", label: "Payments", icon: <CreditCard size={18} /> },
+//     { to: "/admin/gst", label: "GST & Discounts", icon: <CreditCard size={18} /> },
+//     { to: "/admin/inventory", label: "Inventory", icon: <Package size={18} /> },
+//     { to: "/admin/reports", label: "Reports", icon: <FileText size={18} /> },
+//     { to: "/admin/support", label: "Support", icon: <Headphones size={18} /> },
 //   ];
 
 //   return (
-//     <div style={{ display: "flex", minHeight: "100vh", background: "#f6f9fc" }}>
-//       {/* ================= OVERLAY ================= */}
-//       {isMobile && isSidebarOpen && (
-//         <div
-//           onClick={() => setIsSidebarOpen(false)}
-//           style={{
-//             position: "fixed",
-//             inset: 0,
-//             background: "rgba(0,0,0,0.45)",
-//             zIndex: 90,
-//           }}
-//         />
-//       )}
-
+//     <div style={{ display: "flex", minHeight: "100vh" }}>
 //       {/* ================= SIDEBAR ================= */}
 //       <aside
 //         style={{
 //           width: 250,
-//           background: "linear-gradient(180deg, #0f2e47 0%, #1a4d6f 100%)",
+//           background: "linear-gradient(180deg,#0f2e47,#1a4d6f)",
 //           color: "#fff",
-//           padding: "24px",
 //           position: "fixed",
 //           height: "100vh",
 //           zIndex: 100,
 //           transform: isSidebarOpen ? "translateX(0)" : "translateX(-100%)",
-//           transition: "0.35s",
+//           transition: "0.3s",
+//           padding: 20,
 //         }}
 //       >
-//         <h3>Broker Admin</h3>
+//         <h3>Admin Panel</h3>
 
-//         <ul style={{ listStyle: "none", marginTop: 30, padding: 0 }}>
-//           {sidebarItems.map((item, i) => (
-//             <li key={i} style={styles.navItem}>
-//               <Link
-//                 to={item.to}
-//                 style={hoverStyle(hoveredLink === i)}
-//                 onMouseEnter={() => setHoveredLink(i)}
-//                 onMouseLeave={() => setHoveredLink(null)}
-//                 onClick={() => isMobile && setIsSidebarOpen(false)}
-//               >
-//                 {item.icon} {item.label}
-//               </Link>
-//             </li>
-//           ))}
+//         <ul style={{ listStyle: "none", padding: 0 }}>
+//           {sidebarItems.map((item, i) => {
+//             const active = location.pathname.startsWith(item.to);
+//             return (
+//               <li key={i} style={{ marginBottom: 6 }}>
+//                 <Link
+//                   to={item.to}
+//                   onMouseEnter={() => setHoveredLink(i)}
+//                   onMouseLeave={() => setHoveredLink(null)}
+//                   onClick={() => isMobile && setIsSidebarOpen(false)}
+//                   style={{
+//                     display: "flex",
+//                     gap: 10,
+//                     padding: "10px 14px",
+//                     color: "#fff",
+//                     borderRadius: 8,
+//                     textDecoration: "none",
+//                     background: active
+//                       ? "#c0392b"
+//                       : hoveredLink === i
+//                       ? "rgba(255,255,255,0.15)"
+//                       : "transparent",
+//                   }}
+//                 >
+//                   {item.icon} {item.label}
+//                 </Link>
+//               </li>
+//             );
+//           })}
 //         </ul>
 
-//         <button onClick={logout} style={styles.logout}>
-//           <LogOut size={18} /> Logout
+//         <button
+//           onClick={logout}
+//           style={{
+//             marginTop: 20,
+//             width: "100%",
+//             padding: 10,
+//             background: "#c0392b",
+//             color: "#fff",
+//             border: "none",
+//             borderRadius: 8,
+//             cursor: "pointer",
+//           }}
+//         >
+//           <LogOut size={16} /> Logout
 //         </button>
 //       </aside>
 
@@ -1399,52 +367,28 @@
 //         style={{
 //           flex: 1,
 //           marginLeft: !isMobile && isSidebarOpen ? 250 : 0,
-//           transition: "0.35s",
+//           transition: "0.3s",
 //         }}
 //       >
-//         {/* ================= HEADER ================= */}
+//         {/* HEADER */}
 //         <div
 //           style={{
 //             background: "#fff",
 //             padding: "12px 20px",
 //             display: "flex",
-//             alignItems: "center",
 //             justifyContent: "space-between",
 //             position: "sticky",
 //             top: 0,
 //             zIndex: 50,
 //           }}
 //         >
-//           <button
-//             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-//             style={{ background: "transparent", border: "none", cursor: "pointer" }}
-//           >
-//             <Menu size={26} />
+//           <button onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
+//             <Menu />
 //           </button>
-
-//           <h3 style={{ margin: 0 }}>Admin Dashboard</h3>
-
-//           {/* 🔐 PROFILE → UPDATE PASSWORD */}
-//           <div
-//             onClick={() => navigate("/admin/update-password")}
-//             style={{
-//               width: 40,
-//               height: 40,
-//               borderRadius: "50%",
-//               background: "#f1f5f9",
-//               display: "flex",
-//               alignItems: "center",
-//               justifyContent: "center",
-//               cursor: "pointer",
-//               border: "1px solid #e5e7eb",
-//             }}
-//             title="Update Password"
-//           >
-//             <User size={20} />
-//           </div>
+//           <h3>Admin Dashboard</h3>
+//           <User />
 //         </div>
 
-//         {/* ================= CONTENT ================= */}
 //         <div style={{ padding: 24 }}>
 //           <Outlet />
 //         </div>
@@ -1453,35 +397,7 @@
 //   );
 // }
 
-// const styles = {
-//   navItem: { padding: "12px 0" },
-//   link: {
-//     display: "flex",
-//     alignItems: "center",
-//     gap: 12,
-//     color: "#e8f1f8",
-//     textDecoration: "none",
-//     fontSize: 15,
-//     fontWeight: 500,
-//     padding: "10px 12px",
-//     borderRadius: 8,
-//     transition: "0.25s",
-//   },
-//   logout: {
-//     background: "linear-gradient(135deg, #983a30 0%, #c0392b 100%)",
-//     border: "none",
-//     padding: "12px",
-//     color: "#fff",
-//     borderRadius: 8,
-//     marginTop: 20,
-//     cursor: "pointer",
-//     width: "100%",
-//     fontWeight: 600,
-//     display: "flex",
-//     justifyContent: "center",
-//     gap: 8,
-//   },
-// };
+
 import React, { useState, useEffect } from "react";
 import { Link, Outlet, useNavigate, useLocation } from "react-router-dom";
 import {
@@ -1492,6 +408,12 @@ import {
   Grid,
   Package,
   User,
+  CreditCard,
+  Home,
+  Truck,
+  FileText,
+  Headphones,
+    CheckSquare,
 } from "react-feather";
 
 export default function AdminLayout() {
@@ -1502,6 +424,7 @@ export default function AdminLayout() {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [hoveredLink, setHoveredLink] = useState(null);
 
+  /* ================= LOGOUT ================= */
   const logout = () => {
     localStorage.clear();
     navigate("/login", { replace: true });
@@ -1518,47 +441,61 @@ export default function AdminLayout() {
     setIsSidebarOpen(!isMobile);
   }, [isMobile]);
 
-  const hoverStyle = (isHover, active) => ({
-    ...styles.link,
-    background: active
-      ? "linear-gradient(135deg, #983a30 0%, #c0392b 100%)"
-      : isHover
-      ? "rgba(255,255,255,0.15)"
-      : "transparent",
-    color: "#fff",
-  });
-
+  /* ================= SIDEBAR ITEMS ================= */
   const sidebarItems = [
     { to: "/admin", label: "Dashboard", icon: <BarChart2 size={18} /> },
     { to: "/admin/users", label: "Users", icon: <Users size={18} /> },
-    {
-      to: "/admin/CategoryManager",
-      label: "Add Category",
-      icon: <Grid size={18} />,
+    { to: "/admin/stores", label: "Stores / Warehouse", icon: <Home size={18} /> },
+    { to: "/admin/riders", label: "Delivery Partners", icon: <Truck size={18} /> },
+      {
+      to: "/admin/vendor-approval",
+      label: "Vendor Approval",
+      icon: <CheckSquare size={18} />,
     },
-    {
-      to: "/admin/priceanalytics",
-      label: "Analytics",
-      icon: <BarChart2 size={18} />,
-    },
-    {
-      to: "/admin/pricelist",
-      label: "Add Product",
-      icon: <Package size={18} />,
-    },
+    { to: "/admin/CategoryManager", label: "Add Category", icon: <Grid size={18} /> },
+    { to: "/admin/priceanalytics", label: "Analytics", icon: <BarChart2 size={18} /> },
+    { to: "/admin/pricelist", label: "Add Product", icon: <Package size={18} /> },
+    { to: "/admin/orders", label: "Orders", icon: <Package size={18} /> },
+    { to: "/admin/payments", label: "Payments", icon: <CreditCard size={18} /> },
+    { to: "/admin/gst", label: "GST & Discounts", icon: <CreditCard size={18} /> },
+    { to: "/admin/inventory", label: "Inventory", icon: <Package size={18} /> },
+    { to: "/admin/reports", label: "Reports", icon: <FileText size={18} /> },
+    { to: "/admin/support", label: "Support", icon: <Headphones size={18} /> },
   ];
 
+  /* ================= LINK STYLE ================= */
+  const linkStyle = (hover, active) => ({
+    display: "flex",
+    alignItems: "center",
+    gap: 12,
+    padding: "10px 14px",
+    borderRadius: 8,
+    color: "#fff",
+    fontSize: 15,
+    fontWeight: 500,
+    textDecoration: "none",
+    background: active
+      ? "linear-gradient(135deg, #983a30 0%, #c0392b 100%)"
+      : hover
+      ? "rgba(255,255,255,0.15)"
+      : "transparent",
+    transition: "0.25s",
+  });
+
   return (
-    <div style={{ display: "flex", minHeight: "100vh", background: "#f6f9fc" }}>
-      {/* ================= OVERLAY ================= */}
+    <div style={{ display: "flex", minHeight: "100vh", background: "#f6f9fc", position: "relative" }}>
+      {/* ================= OVERLAY (MOBILE) ================= */}
       {isMobile && isSidebarOpen && (
         <div
           onClick={() => setIsSidebarOpen(false)}
           style={{
             position: "fixed",
-            inset: 0,
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
             background: "rgba(0,0,0,0.45)",
-            zIndex: 90,
+            zIndex: 99, // Lower than sidebar but still covers content
           }}
         />
       )}
@@ -1567,27 +504,38 @@ export default function AdminLayout() {
       <aside
         style={{
           width: 250,
+          height: "100vh",
           background: "linear-gradient(180deg, #0f2e47 0%, #1a4d6f 100%)",
           color: "#fff",
-          padding: "24px",
           position: "fixed",
-          height: "100vh",
-          zIndex: 100,
+          zIndex: 100, // Keep this at 100
           transform: isSidebarOpen ? "translateX(0)" : "translateX(-100%)",
           transition: "0.35s",
+          display: "flex",
+          flexDirection: "column",
+          padding: 20,
         }}
       >
-        <h3>Broker Admin</h3>
+        <h3 style={{ marginBottom: 20 }}>Admin Panel</h3>
 
-        <ul style={{ listStyle: "none", marginTop: 30, padding: 0 }}>
+        {/* ===== Scrollable Menu (Scrollbar Hidden) ===== */}
+        <ul
+          className="sidebar-scroll"
+          style={{
+            listStyle: "none",
+            padding: 0,
+            margin: 0,
+            flex: 1,
+            overflowY: "auto",
+          }}
+        >
           {sidebarItems.map((item, i) => {
-            const active = location.pathname === item.to;
-
+            const active = location.pathname.startsWith(item.to);
             return (
-              <li key={i} style={styles.navItem}>
+              <li key={i} style={{ marginBottom: 6 }}>
                 <Link
                   to={item.to}
-                  style={hoverStyle(hoveredLink === i, active)}
+                  style={linkStyle(hoveredLink === i, active)}
                   onMouseEnter={() => setHoveredLink(i)}
                   onMouseLeave={() => setHoveredLink(null)}
                   onClick={() => isMobile && setIsSidebarOpen(false)}
@@ -1599,7 +547,24 @@ export default function AdminLayout() {
           })}
         </ul>
 
-        <button onClick={logout} style={styles.logout}>
+        {/* ===== Logout ===== */}
+        <button
+          onClick={logout}
+          style={{
+            background: "linear-gradient(135deg, #983a30 0%, #c0392b 100%)",
+            border: "none",
+            padding: 12,
+            color: "#fff",
+            borderRadius: 8,
+            fontWeight: 600,
+            cursor: "pointer",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            gap: 8,
+            marginTop: 10,
+          }}
+        >
           <LogOut size={18} /> Logout
         </button>
       </aside>
@@ -1610,6 +575,8 @@ export default function AdminLayout() {
           flex: 1,
           marginLeft: !isMobile && isSidebarOpen ? 250 : 0,
           transition: "0.35s",
+          minHeight: "100vh",
+          position: "relative",
         }}
       >
         {/* ================= HEADER ================= */}
@@ -1622,7 +589,7 @@ export default function AdminLayout() {
             justifyContent: "space-between",
             position: "sticky",
             top: 0,
-            zIndex: 50,
+            zIndex: 49, // Lower than sidebar
           }}
         >
           <button
@@ -1634,7 +601,6 @@ export default function AdminLayout() {
 
           <h3 style={{ margin: 0 }}>Admin Dashboard</h3>
 
-          {/* PROFILE */}
           <div
             onClick={() => navigate("/admin/update-password")}
             style={{
@@ -1648,51 +614,29 @@ export default function AdminLayout() {
               cursor: "pointer",
               border: "1px solid #e5e7eb",
             }}
-            title="Update Password"
           >
             <User size={20} />
           </div>
         </div>
 
         {/* ================= CONTENT ================= */}
-        <div style={{ padding: 24 }}>
+        <div style={{ padding: 24, position: "relative" }}>
           <Outlet />
         </div>
       </main>
+
+      {/* ===== Scrollbar Hide CSS ===== */}
+      <style>
+        {`
+          .sidebar-scroll::-webkit-scrollbar {
+            display: none;
+          }
+          .sidebar-scroll {
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+          }
+        `}
+      </style>
     </div>
   );
 }
-
-/* ================= STYLES ================= */
-
-const styles = {
-  navItem: {
-    padding: "10px 0",
-  },
-  link: {
-    display: "flex",
-    alignItems: "center",
-    gap: 12,
-    color: "#fff",
-    textDecoration: "none",
-    fontSize: 15,
-    fontWeight: 500,
-    padding: "10px 14px",
-    borderRadius: 8,
-    transition: "0.25s",
-  },
-  logout: {
-    background: "linear-gradient(135deg, #983a30 0%, #c0392b 100%)",
-    border: "none",
-    padding: "12px",
-    color: "#fff",
-    borderRadius: 8,
-    marginTop: 20,
-    cursor: "pointer",
-    width: "100%",
-    fontWeight: 600,
-    display: "flex",
-    justifyContent: "center",
-    gap: 8,
-  },
-};

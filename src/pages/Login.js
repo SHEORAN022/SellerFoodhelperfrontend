@@ -231,9 +231,9 @@ export default function Login() {
             <button className="login-btn">Login</button>
           </form>
 
-          <p className="signup-text">
-            Don’t have an account? <Link to="/signup">Sign Up</Link>
-          </p>
+          {/* <p className="signup-text">
+             <Link to="/signup">Sign Up</Link>
+          </p> */}
 
         </div>
       </div>

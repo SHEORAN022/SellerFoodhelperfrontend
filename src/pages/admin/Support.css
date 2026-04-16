@@ -1,0 +1,184 @@
+/* ================= WRAPPER ================= */
+.support-wrapper {
+  background: #f6f9fc;
+  padding: 24px;
+  min-height: 100vh;
+  font-family: "Segoe UI", sans-serif;
+}
+
+/* ================= HEADER ================= */
+.support-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.support-header h2 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.support-header p {
+  margin: 4px 0 0;
+  color: #64748b;
+  font-size: 14px;
+}
+
+/* ================= BUTTONS ================= */
+.primary-btn {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: #fff;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.primary-btn:hover {
+  opacity: 0.9;
+}
+
+.btn-outline {
+  background: #fff;
+  border: 1px solid #cbd5e1;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.btn-outline.green {
+  border-color: #22c55e;
+  color: #16a34a;
+}
+
+/* ================= CREATE BOX ================= */
+.create-box {
+  background: #ffffff;
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 24px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.05);
+  max-width: 500px;
+}
+
+.create-box h3 {
+  margin: 0 0 14px;
+  font-size: 18px;
+}
+
+/* ================= FORM ELEMENTS ================= */
+.create-box select,
+.create-box input,
+.create-box textarea {
+  width: 100%;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  font-size: 14px;
+  outline: none;
+}
+
+.create-box textarea {
+  resize: vertical;
+  min-height: 90px;
+}
+
+.create-box select:focus,
+.create-box input:focus,
+.create-box textarea:focus {
+  border-color: #2563eb;
+}
+
+/* ================= TABLE ================= */
+.table-box {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.05);
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+thead {
+  background: #f1f5f9;
+}
+
+th, td {
+  padding: 14px;
+  text-align: left;
+  font-size: 14px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+th {
+  font-weight: 600;
+  color: #334155;
+}
+
+tbody tr:hover {
+  background: #f8fafc;
+}
+
+/* ================= TICKET CELL ================= */
+.sub {
+  font-size: 12px;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+/* ================= STATUS & PRIORITY PILLS ================= */
+.pill {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.priority.low {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.priority.medium {
+  background: #fef9c3;
+  color: #92400e;
+}
+
+.priority.high {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.status.open {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+.status.in_progress {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.status.resolved {
+  background: #dcfce7;
+  color: #166534;
+}
+
+/* ================= ASSIGN DROPDOWN ================= */
+td select {
+  padding: 6px;
+  border-radius: 6px;
+  border: 1px solid #cbd5e1;
+  font-size: 13px;
+  margin-right: 6px;
+}

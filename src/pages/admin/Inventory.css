@@ -1,0 +1,161 @@
+
+body {
+  background: #f4f7fb;
+  font-family: "Inter", system-ui, sans-serif;
+}
+
+
+.inv-container {
+  background: #ffffff;
+  padding: 28px 32px;
+  max-width: 1200px;
+  margin: 24px auto;
+  border-radius: 18px;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.08);
+}
+
+.inv-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.inv-header h2 {
+  font-size: 26px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+
+.add-btn {
+  background: linear-gradient(135deg, #16a34a, #166534);
+  color: white;
+  padding: 12px 22px;
+  border-radius: 12px;
+  border: none;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  transition: 0.25s;
+}
+
+.add-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(22, 163, 74, 0.4);
+}
+
+
+.inv-form {
+  background: #f8fafc;
+  padding: 22px;
+  border-radius: 14px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 14px;
+  margin-bottom: 25px;
+  border: 1px solid #e5e7eb;
+}
+
+.inv-form select,
+.inv-form input {
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid #cbd5e1;
+  font-size: 14px;
+  background: #ffffff;
+  transition: 0.25s;
+}
+
+.inv-form select:focus,
+.inv-form input:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+}
+
+.inv-form button {
+  grid-column: 1 / -1;
+  background: linear-gradient(135deg, #2563eb, #1e40af);
+  color: white;
+  padding: 14px;
+  border: none;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.inv-form button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 25px rgba(37, 99, 235, 0.35);
+}
+
+.inv-form button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+thead {
+   background: linear-gradient(135deg, #16a34a, #166534);
+  color: white;
+}
+
+th {
+  padding: 14px;
+  font-size: 14px;
+  text-align: left;
+}
+
+td {
+  padding: 14px;
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 14px;
+  color: #334155;
+}
+
+tbody tr:hover {
+  background: #f1f5f9;
+}
+
+
+.low-stock {
+  background: #fee2e2 !important;
+  color: #b91c1c;
+  font-weight: 700;
+}
+
+
+@media (max-width: 768px) {
+  .inv-container {
+    padding: 20px;
+  }
+
+  .inv-header {
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start;
+  }
+
+  .inv-form {
+    grid-template-columns: 1fr;
+  }
+}
+.field-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #374151;
+  margin-bottom: 6px;
+  display: block;
+}

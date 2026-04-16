@@ -5,7 +5,7 @@ export default function PriceHistoryPage() {
   const [rows, setRows] = useState([]);
 
   useEffect(() => {
-    axios.get("http://localhost:7000/api/history")
+    axios.get("https://grocerrybackend.onrender.com/api/history")
       .then(res => setRows(res.data.data));
   }, []);
 
