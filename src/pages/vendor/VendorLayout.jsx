@@ -61,11 +61,11 @@ export default function VendorLayout() {
     { to: "/vendor/dashboard", label: "Dashboard", icon: <Home size={20} /> },
     { to: "/vendor/categories", label: "Categories", icon: <Layers size={20} /> },
     { to: "/vendor/products", label: "Products", icon: <Package size={20} /> },
-      {
- to: "/vendor/bulk-discounts",
-    label: "Bulk Discounts",
-    icon: <Percent size={20} />,
-  },
+//       {
+//  to: "/vendor/bulk-discounts",
+//     label: "Bulk Discounts",
+//     icon: <Percent size={20} />,
+//   },
     { to: "/vendor/orders", label: "Orders", icon: <ShoppingCart size={20} /> },
     { to: "/vendor/users", label: "Customers", icon: <Users size={20} /> },
     { to: "/vendor/profile", label: "Profile", icon: <User size={20} /> },
