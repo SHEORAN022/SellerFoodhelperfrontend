@@ -403,9 +403,7 @@ import {
   Layers, ShoppingBag, AlertCircle,
 } from "react-feather";
 
-/* ============================================================
-   API SETUP
-   ============================================================ */
+
 const API_BASE = "https://foodhelpervendor.onrender.com/api/vendor/categories";
 const api = axios.create({ baseURL: API_BASE });
 api.interceptors.request.use((req) => {
@@ -414,9 +412,7 @@ api.interceptors.request.use((req) => {
   return req;
 });
 
-/* ============================================================
-   SMALL REUSABLE COMPONENTS
-   ============================================================ */
+
 function Thumb({ src, size = 36 }) {
   if (src)
     return (

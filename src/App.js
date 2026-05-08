@@ -16,6 +16,8 @@ import VendorProfile from "./pages/vendor/VendorProfile";
 import VendorInventory from "./pages/vendor/VendorInventory";
 import VendorBulkDiscount from "./pages/vendor/VendorBulkDiscount";
 import VendorUsers from "./pages/vendor/VendorUsers";
+import Invoice from "./pages/vendor/invoice";
+import EstimateInvoice from "./pages/vendor/EstimateInvoice";
 /* ================= ADMIN LAYOUT ================= */
 import AdminLayout from "./pages/admin/AdminLayout";
 
@@ -107,6 +109,9 @@ export default function App() {
           <Route path="update-password" element={<AdminUpdatePassword />} />
           <Route path="gst" element={<AdminGST />} />
           <Route path="inventory" element={<AdminInventory />} />
+
+  <Route path="invoice" element={<Invoice />} />
+  <Route path="estimate" element={<EstimateInvoice />} />
           <Route path="reports" element={<Reports />} />
           <Route path="support" element={<Support />} />
 

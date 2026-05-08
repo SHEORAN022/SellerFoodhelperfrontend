@@ -1,9 +1,837 @@
+// import React, { useEffect, useState, useCallback, useMemo } from "react";
+// import axios from "axios";
 
-import React, { useEffect, useState } from "react";
+// const INVENTORY_API = "https://foodhelpervendor.onrender.com/api/vendor/inventory";
+// const PRODUCT_API   = "https://foodhelpervendor.onrender.com/api/vendor/products";
+
+// const axiosAuth = axios.create();
+// axiosAuth.interceptors.request.use((config) => {
+//   const token = localStorage.getItem("vendorToken");
+//   if (token) config.headers.Authorization = `Bearer ${token}`;
+//   return config;
+// });
+
+// /* ─── Helpers ─── */
+// const toNum = (v, fb = 0) => { const n = Number(v); return isNaN(n) ? fb : n; };
+// const fmtDate = (d) =>
+//   d ? new Date(d).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : null;
+// const daysLeft = (d) =>
+//   d ? Math.ceil((new Date(d) - Date.now()) / 86400000) : null;
+
+// /* ─── Expiry urgency helper ─── */
+// const expiryLevel = (d) => {
+//   const days = daysLeft(d);
+//   if (days === null) return "none";
+//   if (days < 0)  return "expired";
+//   if (days <= 7)  return "critical";
+//   if (days <= 30) return "warning";
+//   return "ok";
+// };
+
+// const EXPIRY_COLORS = {
+//   expired:  { bg:"#FEF2F2", text:"#DC2626", border:"#FECACA" },
+//   critical: { bg:"#FFF7ED", text:"#C2410C", border:"#FED7AA" },
+//   warning:  { bg:"#FEFCE8", text:"#A16207", border:"#FEF08A" },
+//   ok:       { bg:"#F0FDF4", text:"#15803D", border:"#BBF7D0" },
+//   none:     { bg:"transparent", text:"#94A3B8", border:"transparent" },
+// };
+
+// /* ─── Tiny UI Components ─── */
+// const StatusBadge = ({ item }) => {
+//   if (item.outOfStock)
+//     return <Pill bg="#FEE2E2" color="#DC2626">Out of Stock</Pill>;
+//   if (item.availableStock <= item.minStock)
+//     return <Pill bg="#FEF3C7" color="#D97706">Low Stock</Pill>;
+//   return <Pill bg="#DCFCE7" color="#16A34A">In Stock</Pill>;
+// };
+
+// const ExpiryBadge = ({ date }) => {
+//   if (!date) return <span style={{ color:"#CBD5E1", fontSize:12 }}>—</span>;
+//   const days = daysLeft(date);
+//   const level = expiryLevel(date);
+//   const c = EXPIRY_COLORS[level];
+//   const label =
+//     days < 0  ? `Expired ${Math.abs(days)}d ago` :
+//     days === 0 ? "Expires today!" :
+//     days === 1 ? "Expires tomorrow" :
+//                  `${days}d left`;
+//   return (
+//     <div>
+//       <div style={{ fontSize:12, fontWeight:700, color: c.text }}>{fmtDate(date)}</div>
+//       <div style={{
+//         display:"inline-block", marginTop:3, padding:"2px 7px",
+//         borderRadius:20, fontSize:10, fontWeight:700,
+//         background: c.bg, color: c.text, border:`1px solid ${c.border}`,
+//       }}>{label}</div>
+//     </div>
+//   );
+// };
+
+// const Pill = ({ bg, color, children }) => (
+//   <span style={{
+//     display:"inline-block", padding:"3px 10px", borderRadius:20,
+//     fontSize:11, fontWeight:700, background:bg, color,
+//   }}>{children}</span>
+// );
+
+// const UrgencyTag = ({ item }) => {
+//   const level = expiryLevel(item.expiryDate);
+//   if (item.outOfStock) return <span style={urgTag("#FEE2E2","#DC2626")}>⚠ Out of Stock</span>;
+//   if (item.availableStock <= item.minStock) return <span style={urgTag("#FEF3C7","#D97706")}>↓ Low Stock</span>;
+//   if (level === "expired")  return <span style={urgTag("#FEE2E2","#DC2626")}>✕ Expired</span>;
+//   if (level === "critical") return <span style={urgTag("#FFF7ED","#C2410C")}>! Expiring Soon</span>;
+//   if (level === "warning")  return <span style={urgTag("#FEFCE8","#A16207")}>~ Exp. This Month</span>;
+//   return null;
+// };
+// const urgTag = (bg, color) => ({
+//   display:"inline-block", padding:"2px 8px", borderRadius:4,
+//   fontSize:10, fontWeight:700, background:bg, color,
+// });
+
+// const StatCard = ({ label, value, color, sub }) => (
+//   <div style={{
+//     flex:"0 0 auto", minWidth:130, background:"#fff",
+//     border:"1px solid #E5E7EB", borderRadius:12,
+//     padding:"14px 18px", borderTop:`3px solid ${color}`,
+//   }}>
+//     <div style={{ fontSize:22, fontWeight:800, color, fontVariantNumeric:"tabular-nums" }}>{value}</div>
+//     <div style={{ fontSize:11, color:"#6B7280", marginTop:3, fontWeight:600 }}>{label}</div>
+//     {sub && <div style={{ fontSize:10, color:color, marginTop:2 }}>{sub}</div>}
+//   </div>
+// );
+
+// const Toast = ({ msg, type }) => msg ? (
+//   <div style={{
+//     position:"fixed", top:20, right:20, zIndex:2000,
+//     background: type==="error" ? "#EF4444" : "#059669",
+//     color:"#fff", padding:"12px 20px", borderRadius:10,
+//     fontWeight:600, fontSize:13, boxShadow:"0 4px 20px rgba(0,0,0,.2)",
+//     animation:"slideIn .2s ease",
+//   }}>{msg}</div>
+// ) : null;
+
+// const Confirm = ({ open, msg, onOk, onCancel }) => !open ? null : (
+//   <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,.45)", display:"flex", alignItems:"center", justifyContent:"center", zIndex:1500 }}>
+//     <div style={{ background:"#fff", borderRadius:14, padding:"28px 32px", maxWidth:380, width:"90%", boxShadow:"0 20px 60px rgba(0,0,0,.2)" }}>
+//       <div style={{ fontWeight:700, fontSize:15, color:"#111827", marginBottom:10 }}>Confirm Delete</div>
+//       <p style={{ color:"#4B5563", fontSize:13, marginBottom:20 }}>{msg}</p>
+//       <div style={{ display:"flex", gap:10, justifyContent:"flex-end" }}>
+//         <button onClick={onCancel} style={secondaryBtn}>Cancel</button>
+//         <button onClick={onOk} style={{ ...primaryBtn, background:"#EF4444" }}>Yes, Delete</button>
+//       </div>
+//     </div>
+//   </div>
+// );
+
+// const RestockModal = ({ item, onClose, onSave }) => {
+//   const [qty, setQty] = useState("");
+//   const [loading, setLoading] = useState(false);
+//   if (!item) return null;
+//   const submit = async () => {
+//     const n = toNum(qty);
+//     if (!n || n <= 0) return alert("Valid positive quantity enter karo");
+//     setLoading(true);
+//     await onSave(n);
+//     setLoading(false);
+//     onClose();
+//   };
+//   return (
+//     <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,.45)", display:"flex", alignItems:"center", justifyContent:"center", zIndex:1500 }}>
+//       <div style={{ background:"#fff", borderRadius:14, padding:"28px 32px", maxWidth:360, width:"90%", boxShadow:"0 20px 60px rgba(0,0,0,.2)" }}>
+//         <div style={{ fontWeight:700, fontSize:15, marginBottom:4 }}>+ Restock</div>
+//         <div style={{ fontSize:13, color:"#374151", fontWeight:600, marginBottom:4 }}>{item.product?.name}</div>
+//         <div style={{ fontSize:12, color:"#6B7280", marginBottom:18 }}>
+//           Current available: <b style={{ color:"#2563EB" }}>{item.availableStock}</b> units
+//         </div>
+//         <label style={labelStyle}>Add Quantity</label>
+//         <input
+//           type="number" min="1" value={qty}
+//           onChange={e => setQty(e.target.value)}
+//           placeholder="e.g. 50" style={{ ...inputStyle, marginBottom:16 }}
+//           autoFocus onKeyDown={e => e.key === "Enter" && submit()}
+//         />
+//         <div style={{ display:"flex", gap:10, justifyContent:"flex-end" }}>
+//           <button onClick={onClose} style={secondaryBtn}>Cancel</button>
+//           <button onClick={submit} disabled={loading} style={{ ...primaryBtn, background:"#059669" }}>
+//             {loading ? "Saving…" : "+ Add Stock"}
+//           </button>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// };
+
+// /* ─── Shared Styles ─── */
+// const primaryBtn = {
+//   padding:"9px 20px", background:"#2563EB", color:"#fff",
+//   border:"none", borderRadius:8, cursor:"pointer", fontWeight:700, fontSize:13,
+// };
+// const secondaryBtn = {
+//   padding:"9px 18px", background:"#F1F5F9", border:"1px solid #D1D5DB",
+//   borderRadius:8, cursor:"pointer", fontSize:13, color:"#374151",
+// };
+// const inputStyle = {
+//   width:"100%", padding:"9px 12px", borderRadius:8,
+//   border:"1px solid #D1D5DB", fontSize:13, outline:"none",
+//   background:"#F9FAFB", boxSizing:"border-box", display:"block",
+// };
+// const labelStyle = {
+//   display:"block", fontSize:11, fontWeight:700,
+//   color:"#374151", marginBottom:5, textTransform:"uppercase", letterSpacing:"0.04em",
+// };
+// const th = {
+//   padding:"10px 14px", textAlign:"left", fontSize:11,
+//   fontWeight:700, color:"#6B7280", borderBottom:"1px solid #E5E7EB",
+//   background:"#F9FAFB", textTransform:"uppercase", letterSpacing:"0.05em",
+//   whiteSpace:"nowrap",
+// };
+// const td = { padding:"11px 14px", fontSize:13, borderBottom:"1px solid #F3F4F6", color:"#374151" };
+
+// /* ══════════════════════════════════════
+//    MAIN COMPONENT
+// ══════════════════════════════════════ */
+// export default function VendorInventory() {
+//   const [tab, setTab]           = useState("inventory");
+//   const [items, setItems]       = useState([]);
+//   const [products, setProducts] = useState([]);
+//   const [loading, setLoading]   = useState(false);
+//   const [saving, setSaving]     = useState(false);
+
+//   const [toast, setToast]       = useState({ msg:"", type:"success" });
+//   const showToast = (msg, type="success") => {
+//     setToast({ msg, type });
+//     setTimeout(() => setToast({ msg:"", type:"success" }), 3500);
+//   };
+
+//   const [confirm, setConfirm]   = useState({ open:false, msg:"", cb:null });
+//   const askConfirm = (msg, cb) => setConfirm({ open:true, msg, cb });
+//   const closeConfirm = ()       => setConfirm({ open:false, msg:"", cb:null });
+
+//   const [restockItem, setRestockItem] = useState(null);
+
+//   const [search, setSearch]     = useState("");
+//   const [status, setStatus]     = useState("ALL");
+
+//   /* form */
+//   const emptyForm = { productId:"", totalStock:"", minStock:"5", expiryDate:"" };
+//   const [form, setForm]         = useState(emptyForm);
+//   const [editId, setEditId]     = useState(null);
+//   const [showForm, setShowForm] = useState(false);
+
+//   /* batch */
+//   const newRow = () => ({ id: Date.now()+Math.random(), productId:"", totalStock:"", minStock:"5", expiryDate:"" });
+//   const [batchRows, setBatchRows] = useState([newRow()]);
+
+//   /* ── Fetch ── */
+//   const fetchInventory = useCallback(async () => {
+//     try {
+//       setLoading(true);
+//       const res = await axiosAuth.get(INVENTORY_API);
+//       if (res.data?.success) {
+//         setItems(res.data.data.filter(x => x.product && x.product._id));
+//       }
+//     } catch (e) {
+//       showToast(e?.response?.data?.message || "Failed to fetch inventory", "error");
+//     } finally { setLoading(false); }
+//   }, []);
+
+//   const fetchProducts = useCallback(async () => {
+//     try {
+//       const res = await axiosAuth.get(PRODUCT_API);
+//       if (res.data?.success) setProducts(res.data.data);
+//     } catch { showToast("Failed to fetch products", "error"); }
+//   }, []);
+
+//   useEffect(() => { fetchInventory(); fetchProducts(); }, []);
+
+//   /* ── Frontend smart sort (mirrors backend logic) ── */
+//   const sortItems = useCallback((list) => {
+//     const score = (x) => {
+//       let s = 0;
+//       if (x.outOfStock) s += 1000;
+//       else if (x.availableStock <= x.minStock) s += 500;
+//       const days = daysLeft(x.expiryDate);
+//       if (days !== null) {
+//         if (days <= 0)  s += 800;
+//         else if (days <= 7)  s += 400;
+//         else if (days <= 30) s += 200;
+//       }
+//       return s;
+//     };
+//     return [...list].sort((a, b) => {
+//       const d = score(b) - score(a);
+//       if (d !== 0) return d;
+//       const da = a.expiryDate ? new Date(a.expiryDate) : null;
+//       const db = b.expiryDate ? new Date(b.expiryDate) : null;
+//       if (da && db) return da - db;
+//       if (da) return -1;
+//       if (db) return 1;
+//       return 0;
+//     });
+//   }, []);
+
+//   /* ── Filtered + sorted ── */
+//   const filtered = useMemo(() => {
+//     const q = search.toLowerCase();
+//     const base = items.filter(x => {
+//       const nameOk = !q || x.product?.name?.toLowerCase().includes(q);
+//       const days   = daysLeft(x.expiryDate);
+//       const statOk =
+//         status === "ALL"      ? true :
+//         status === "OUT"      ? x.outOfStock :
+//         status === "LOW"      ? (!x.outOfStock && x.availableStock <= x.minStock) :
+//         status === "EXPIRING" ? (days !== null && days <= 30) :
+//         (!x.outOfStock && x.availableStock > x.minStock);
+//       return nameOk && statOk;
+//     });
+//     return sortItems(base);
+//   }, [items, search, status, sortItems]);
+
+//   /* ── Stats ── */
+//   const stats = useMemo(() => ({
+//     total:    items.length,
+//     ok:       items.filter(x => !x.outOfStock && x.availableStock > x.minStock).length,
+//     low:      items.filter(x => !x.outOfStock && x.availableStock <= x.minStock).length,
+//     out:      items.filter(x => x.outOfStock).length,
+//     expiring: items.filter(x => { const d = daysLeft(x.expiryDate); return d !== null && d <= 30 && !x.outOfStock; }).length,
+//   }), [items]);
+
+//   /* ── CRUD ── */
+//   const handleSubmit = async (e) => {
+//     e.preventDefault();
+//     if (!editId && !form.productId) return showToast("Product select karo", "error");
+//     if (form.totalStock === "")      return showToast("Total stock required", "error");
+//     setSaving(true);
+//     try {
+//       const body = {
+//         totalStock:  toNum(form.totalStock),
+//         minStock:    toNum(form.minStock, 5),
+//         expiryDate:  form.expiryDate || null,
+//       };
+//       if (editId) {
+//         await axiosAuth.put(`${INVENTORY_API}/${editId}`, body);
+//         showToast("Inventory updated!");
+//       } else {
+//         await axiosAuth.post(INVENTORY_API, { ...body, productId: form.productId });
+//         showToast("Inventory added!");
+//       }
+//       setForm(emptyForm); setEditId(null); setShowForm(false);
+//       fetchInventory();
+//     } catch (e) {
+//       showToast(e?.response?.data?.message || "Save failed", "error");
+//     } finally { setSaving(false); }
+//   };
+
+//   const handleEdit = (inv) => {
+//     setForm({
+//       productId:  inv.product?._id || "",
+//       totalStock: String(inv.totalStock),
+//       minStock:   String(inv.minStock),
+//       expiryDate: inv.expiryDate ? inv.expiryDate.slice(0, 10) : "",
+//     });
+//     setEditId(inv._id);
+//     setShowForm(true);
+//     setTab("add");
+//     window.scrollTo({ top:0, behavior:"smooth" });
+//   };
+
+//   const handleDelete = (inv) => {
+//     askConfirm(
+//       `"${inv.product?.name}" ka inventory record delete karein? Yeh undo nahi hoga.`,
+//       async () => {
+//         closeConfirm();
+//         try {
+//           await axiosAuth.delete(`${INVENTORY_API}/${inv._id}`);
+//           setItems(prev => prev.filter(x => x._id !== inv._id));
+//           if (editId === inv._id) { setForm(emptyForm); setEditId(null); setShowForm(false); }
+//           showToast("Deleted!");
+//         } catch (e) { showToast(e?.response?.data?.message || "Delete failed", "error"); }
+//       }
+//     );
+//   };
+
+//   const handleRestock = async (qty) => {
+//     try {
+//       await axiosAuth.patch(`${INVENTORY_API}/${restockItem._id}/restock`, { quantity: qty });
+//       showToast(`+${qty} stock added!`);
+//       fetchInventory();
+//     } catch (e) { showToast(e?.response?.data?.message || "Restock failed", "error"); }
+//   };
+
+//   /* ── Batch save ── */
+//   const saveBatch = async () => {
+//     const valid = batchRows.filter(r => r.productId && r.totalStock !== "");
+//     if (!valid.length) return showToast("Kam se kam ek valid row fill karo", "error");
+//     setSaving(true);
+//     try {
+//       const res = await axiosAuth.post(`${INVENTORY_API}/batch`, {
+//         items: valid.map(r => ({
+//           productId:  r.productId,
+//           totalStock: toNum(r.totalStock),
+//           minStock:   toNum(r.minStock, 5),
+//           expiryDate: r.expiryDate || null,
+//         })),
+//       });
+//       const d = res.data?.data;
+//       showToast(`${d?.created?.length||0} created, ${d?.updated?.length||0} updated!`);
+//       setBatchRows([newRow()]);
+//       fetchInventory();
+//     } catch (e) { showToast(e?.response?.data?.message || "Batch save failed", "error"); }
+//     finally { setSaving(false); }
+//   };
+
+//   const updateRow = (id, k, v) => setBatchRows(r => r.map(row => row.id === id ? { ...row, [k]: v } : row));
+
+//   /* ── Render ── */
+//   const TABS = [
+//     { id:"inventory", label:"📦 Stock List" },
+//     { id:"add",       label:"✏️ Add / Edit" },
+//     { id:"batch",     label:"⚡ Batch Update" },
+//   ];
+
+//   return (
+//     <div style={{ fontFamily:"'Segoe UI', system-ui, sans-serif", padding:"20px 24px", maxWidth:1100, margin:"0 auto", color:"#111827", background:"#F8FAFC", minHeight:"100vh" }}>
+//       <Toast msg={toast.msg} type={toast.type} />
+//       <Confirm open={confirm.open} msg={confirm.msg} onOk={confirm.cb} onCancel={closeConfirm} />
+//       <RestockModal item={restockItem} onClose={() => setRestockItem(null)} onSave={handleRestock} />
+
+//       {/* Header */}
+//       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:20, flexWrap:"wrap", gap:12 }}>
+//         <div>
+//           <div style={{ fontSize:20, fontWeight:800, color:"#0F172A", letterSpacing:"-0.02em" }}>Inventory Management</div>
+//           <div style={{ fontSize:12, color:"#94A3B8", marginTop:2 }}>
+//             {loading ? "Loading…" : `${items.length} products tracked`}
+//           </div>
+//         </div>
+//         <button onClick={() => { fetchInventory(); fetchProducts(); }} style={secondaryBtn}>↻ Refresh</button>
+//       </div>
+
+//       {/* Stat Cards */}
+//       <div style={{ display:"flex", gap:10, marginBottom:20, flexWrap:"wrap" }}>
+//         <StatCard label="Total Products" value={stats.total}    color="#2563EB" />
+//         <StatCard label="In Stock"       value={stats.ok}       color="#059669" />
+//         <StatCard label="Low Stock"      value={stats.low}      color="#D97706" />
+//         <StatCard label="Out of Stock"   value={stats.out}      color="#DC2626" />
+//         <StatCard label="Expiring Soon"  value={stats.expiring} color="#9333EA" sub="within 30 days" />
+//       </div>
+
+//       {/* Alert Banner — expiring/out of stock critical items */}
+//       {(stats.out > 0 || stats.expiring > 0) && (
+//         <div style={{
+//           background:"#FFF7ED", border:"1px solid #FED7AA",
+//           borderRadius:10, padding:"12px 16px", marginBottom:16,
+//           display:"flex", alignItems:"center", gap:12, flexWrap:"wrap",
+//         }}>
+//           <span style={{ fontSize:18 }}>⚠️</span>
+//           <div style={{ fontSize:13, color:"#92400E" }}>
+//             {stats.out > 0 && <span><b>{stats.out} product{stats.out>1?"s":""}</b> out of stock. </span>}
+//             {stats.expiring > 0 && <span><b>{stats.expiring} product{stats.expiring>1?"s":""}</b> expiring within 30 days. </span>}
+//             <button
+//               onClick={() => { setStatus("EXPIRING"); setTab("inventory"); }}
+//               style={{ color:"#C2410C", fontWeight:700, background:"none", border:"none", cursor:"pointer", fontSize:13, textDecoration:"underline" }}
+//             >View expiring →</button>
+//           </div>
+//         </div>
+//       )}
+
+//       {/* Tabs */}
+//       <div style={{ display:"flex", background:"#fff", border:"1px solid #E5E7EB", borderRadius:10, overflow:"hidden", marginBottom:20 }}>
+//         {TABS.map(t => (
+//           <button key={t.id} onClick={() => setTab(t.id)} style={{
+//             flex:1, padding:"11px 4px", border:"none", cursor:"pointer",
+//             fontSize:13, fontWeight:700, transition:"all .15s",
+//             background: tab===t.id ? "#2563EB" : "transparent",
+//             color: tab===t.id ? "#fff" : "#6B7280",
+//             borderRight:"1px solid #E5E7EB",
+//           }}>{t.label}</button>
+//         ))}
+//       </div>
+
+//       {/* ══ TAB: STOCK LIST ══ */}
+//       {tab === "inventory" && (
+//         <>
+//           <div style={{ display:"flex", gap:10, marginBottom:16, flexWrap:"wrap", alignItems:"center" }}>
+//             <input
+//               type="text" placeholder="🔍 Search product…"
+//               value={search} onChange={e => setSearch(e.target.value)}
+//               style={{ ...inputStyle, maxWidth:240, flex:"1 1 180px" }}
+//             />
+//             <div style={{ display:"flex", gap:4, flexWrap:"wrap" }}>
+//               {[
+//                 { k:"ALL",      label:"All",           color:"#2563EB" },
+//                 { k:"OK",       label:"✓ In Stock",    color:"#059669" },
+//                 { k:"LOW",      label:"↓ Low",         color:"#D97706" },
+//                 { k:"OUT",      label:"✕ Out",         color:"#DC2626" },
+//                 { k:"EXPIRING", label:"⏰ Expiring",   color:"#9333EA" },
+//               ].map(({ k, label, color }) => (
+//                 <button key={k} onClick={() => setStatus(k)} style={{
+//                   padding:"7px 13px", borderRadius:8, fontSize:12, fontWeight:700,
+//                   border:`1.5px solid ${status===k ? color : "#E5E7EB"}`,
+//                   background: status===k ? color : "#fff",
+//                   color: status===k ? "#fff" : "#6B7280",
+//                   cursor:"pointer", transition:"all .15s",
+//                 }}>{label}</button>
+//               ))}
+//             </div>
+//             <button onClick={() => { setTab("add"); setEditId(null); setForm(emptyForm); setShowForm(true); }}
+//               style={{ ...primaryBtn, marginLeft:"auto" }}>
+//               + Add Stock
+//             </button>
+//           </div>
+
+//           {loading ? (
+//             <div style={{ textAlign:"center", color:"#94A3B8", padding:60, fontSize:14 }}>Loading inventory…</div>
+//           ) : filtered.length === 0 ? (
+//             <div style={{ textAlign:"center", color:"#CBD5E1", padding:60 }}>
+//               <div style={{ fontSize:36, marginBottom:10 }}>📦</div>
+//               <div style={{ fontSize:14 }}>No inventory records found.</div>
+//             </div>
+//           ) : (
+//             <div style={{ background:"#fff", borderRadius:12, border:"1px solid #E5E7EB", overflow:"hidden" }}>
+//               <div style={{ padding:"11px 16px", borderBottom:"1px solid #F3F4F6", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+//                 <span style={{ fontSize:12, fontWeight:700, color:"#6B7280" }}>
+//                   {filtered.length} of {items.length} products
+//                   {(stats.low + stats.out) > 0 && <span style={{ color:"#DC2626", marginLeft:8 }}>• {stats.low + stats.out} need attention</span>}
+//                 </span>
+//                 <span style={{ fontSize:11, color:"#94A3B8" }}>Sorted by: critical items first ↑</span>
+//               </div>
+//               <div style={{ overflowX:"auto" }}>
+//                 <table style={{ width:"100%", borderCollapse:"collapse" }}>
+//                   <thead>
+//                     <tr>
+//                       <th style={th}>#</th>
+//                       <th style={th}>Product</th>
+//                       <th style={{ ...th, textAlign:"center" }}>Total</th>
+//                       <th style={{ ...th, textAlign:"center" }}>Available</th>
+//                       <th style={{ ...th, textAlign:"center" }}>Min Alert</th>
+//                       <th style={th}>Expiry Date</th>
+//                       <th style={{ ...th, textAlign:"center" }}>Status</th>
+//                       <th style={{ ...th, textAlign:"center" }}>Actions</th>
+//                     </tr>
+//                   </thead>
+//                   <tbody>
+//                     {filtered.map((x, i) => {
+//                       const level = expiryLevel(x.expiryDate);
+//                       const rowBg =
+//                         x.outOfStock ? "#FFF5F5" :
+//                         level === "expired"  ? "#FFF5F5" :
+//                         level === "critical" ? "#FFFBF0" :
+//                         x.availableStock <= x.minStock ? "#FFFDF0" : "transparent";
+//                       return (
+//                         <tr key={x._id}
+//                           style={{ background: rowBg, transition:"background .1s" }}
+//                           onMouseEnter={e => e.currentTarget.style.filter="brightness(0.97)"}
+//                           onMouseLeave={e => e.currentTarget.style.filter="none"}
+//                         >
+//                           <td style={{ ...td, color:"#94A3B8", width:40, verticalAlign:"middle" }}>
+//                             <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:3 }}>
+//                               <span>{i+1}</span>
+//                               <UrgencyTag item={x} />
+//                             </div>
+//                           </td>
+//                           <td style={{ ...td, fontWeight:600, color:"#111827", verticalAlign:"middle" }}>
+//                             {x.product?.name || "—"}
+//                           </td>
+//                           <td style={{ ...td, textAlign:"center", verticalAlign:"middle" }}>{x.totalStock}</td>
+//                           <td style={{
+//                             ...td, textAlign:"center", verticalAlign:"middle",
+//                             fontWeight:800, fontSize:15,
+//                             color: x.outOfStock ? "#DC2626" : x.availableStock <= x.minStock ? "#D97706" : "#059669"
+//                           }}>{x.availableStock}</td>
+//                           <td style={{ ...td, textAlign:"center", color:"#94A3B8", verticalAlign:"middle" }}>{x.minStock}</td>
+//                           <td style={{ ...td, verticalAlign:"middle" }}>
+//                             <ExpiryBadge date={x.expiryDate} />
+//                           </td>
+//                           <td style={{ ...td, textAlign:"center", verticalAlign:"middle" }}>
+//                             <StatusBadge item={x} />
+//                           </td>
+//                           <td style={{ ...td, textAlign:"center", verticalAlign:"middle", whiteSpace:"nowrap" }}>
+//                             <div style={{ display:"inline-flex", gap:5 }}>
+//                               <ActionBtn color="#2563EB" bg="#EFF6FF" border="#BFDBFE" onClick={() => handleEdit(x)}>Edit</ActionBtn>
+//                               <ActionBtn color="#059669" bg="#ECFDF5" border="#A7F3D0" onClick={() => setRestockItem(x)}>+Stock</ActionBtn>
+//                               <ActionBtn color="#DC2626" bg="#FEF2F2" border="#FECACA" onClick={() => handleDelete(x)}>Delete</ActionBtn>
+//                             </div>
+//                           </td>
+//                         </tr>
+//                       );
+//                     })}
+//                   </tbody>
+//                 </table>
+//               </div>
+//             </div>
+//           )}
+//         </>
+//       )}
+
+//       {/* ══ TAB: ADD/EDIT ══ */}
+//       {tab === "add" && (
+//         <div style={{ background:"#fff", borderRadius:12, border:"1px solid #E5E7EB", padding:"24px 28px" }}>
+//           <div style={{ fontSize:15, fontWeight:800, color:"#0F172A", marginBottom:20 }}>
+//             {editId ? "✏️ Update Stock" : "➕ Add New Stock"}
+//           </div>
+//           <form onSubmit={handleSubmit}>
+//             <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(190px, 1fr))", gap:18, marginBottom:20 }}>
+//               {/* Product */}
+//               <div>
+//                 <label style={labelStyle}>Product *</label>
+//                 {editId ? (
+//                   <div style={{ ...inputStyle, background:"#F1F5F9", color:"#6B7280", cursor:"not-allowed" }}>
+//                     {items.find(x => x._id === editId)?.product?.name || "—"}
+//                   </div>
+//                 ) : (
+//                   <select
+//                     value={form.productId}
+//                     onChange={e => setForm(p => ({ ...p, productId: e.target.value }))}
+//                     required style={inputStyle}
+//                   >
+//                     <option value="">Select Product…</option>
+//                     {products.map(p => (
+//                       <option key={p._id} value={p._id}>{p.name}</option>
+//                     ))}
+//                   </select>
+//                 )}
+//               </div>
+
+//               {/* Total Stock */}
+//               <div>
+//                 <label style={labelStyle}>Total Stock *</label>
+//                 <input
+//                   type="number" min="0" placeholder="e.g. 100"
+//                   value={form.totalStock}
+//                   onChange={e => setForm(p => ({ ...p, totalStock: e.target.value }))}
+//                   required style={inputStyle}
+//                 />
+//               </div>
+
+//               {/* Min Stock */}
+//               <div>
+//                 <label style={labelStyle}>Min Stock Alert</label>
+//                 <input
+//                   type="number" min="0" placeholder="e.g. 5"
+//                   value={form.minStock}
+//                   onChange={e => setForm(p => ({ ...p, minStock: e.target.value }))}
+//                   style={inputStyle}
+//                 />
+//               </div>
+
+//               {/* Expiry Date ✅ NEW */}
+//               <div>
+//                 <label style={labelStyle}>Expiry Date <span style={{ color:"#94A3B8", fontWeight:400 }}>(optional)</span></label>
+//                 <input
+//                   type="date" value={form.expiryDate}
+//                   onChange={e => setForm(p => ({ ...p, expiryDate: e.target.value }))}
+//                   style={inputStyle}
+//                 />
+//                 {form.expiryDate && (
+//                   <div style={{ marginTop:6 }}>
+//                     <ExpiryBadge date={form.expiryDate} />
+//                   </div>
+//                 )}
+//               </div>
+//             </div>
+
+//             {editId && (
+//               <div style={{ background:"#FFF7ED", border:"1px solid #FED7AA", borderRadius:8, padding:"10px 14px", marginBottom:18, fontSize:12, color:"#92400E" }}>
+//                 ⚠️ Update karoge toh <b>totalStock aur availableStock dono reset</b> ho jayenge. Sirf quantity add karne ke liye <b>"+Stock"</b> button use karo inventory list mein.
+//               </div>
+//             )}
+
+//             <div style={{ display:"flex", gap:10 }}>
+//               <button type="submit" disabled={saving} style={{ ...primaryBtn, opacity: saving ? 0.7 : 1 }}>
+//                 {saving ? "Saving…" : editId ? "Update Stock" : "Add Stock"}
+//               </button>
+//               {editId && (
+//                 <button type="button" onClick={() => { setForm(emptyForm); setEditId(null); }} style={secondaryBtn}>
+//                   Cancel Edit
+//                 </button>
+//               )}
+//             </div>
+//           </form>
+
+//           {/* Quick list */}
+//           {!editId && items.length > 0 && (
+//             <div style={{ marginTop:30 }}>
+//               <div style={{ fontSize:12, fontWeight:700, color:"#6B7280", marginBottom:10, textTransform:"uppercase", letterSpacing:"0.05em" }}>
+//                 Quick Edit Existing
+//               </div>
+//               <div style={{ display:"grid", gap:7 }}>
+//                 {sortItems(items).slice(0, 8).map(x => (
+//                   <div key={x._id} style={{
+//                     display:"flex", alignItems:"center", justifyContent:"space-between",
+//                     padding:"10px 14px", background:"#F8FAFC", borderRadius:8,
+//                     border:"1px solid #E5E7EB", flexWrap:"wrap", gap:8,
+//                   }}>
+//                     <div>
+//                       <span style={{ fontWeight:600, fontSize:13 }}>{x.product?.name}</span>
+//                       <span style={{ color:"#94A3B8", fontSize:12, marginLeft:8 }}>
+//                         {x.availableStock}/{x.totalStock}
+//                       </span>
+//                       {x.expiryDate && (
+//                         <span style={{
+//                           marginLeft:8, fontSize:11, fontWeight:700,
+//                           color: EXPIRY_COLORS[expiryLevel(x.expiryDate)].text,
+//                         }}>
+//                           · exp {fmtDate(x.expiryDate)}
+//                         </span>
+//                       )}
+//                     </div>
+//                     <div style={{ display:"flex", gap:6, alignItems:"center" }}>
+//                       <StatusBadge item={x} />
+//                       <button onClick={() => handleEdit(x)} style={{
+//                         padding:"4px 12px", background:"#EFF6FF", color:"#2563EB",
+//                         border:"1px solid #BFDBFE", borderRadius:6, cursor:"pointer",
+//                         fontSize:12, fontWeight:700,
+//                       }}>Edit</button>
+//                     </div>
+//                   </div>
+//                 ))}
+//                 {items.length > 8 && (
+//                   <div style={{ fontSize:12, color:"#94A3B8", textAlign:"center", padding:6 }}>
+//                     +{items.length - 8} more — Stock List tab mein dekho
+//                   </div>
+//                 )}
+//               </div>
+//             </div>
+//           )}
+//         </div>
+//       )}
+
+//       {/* ══ TAB: BATCH ══ */}
+//       {tab === "batch" && (
+//         <div style={{ background:"#fff", borderRadius:12, border:"1px solid #E5E7EB", overflow:"hidden" }}>
+//           <div style={{ padding:"16px 20px", borderBottom:"1px solid #F3F4F6", display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:10 }}>
+//             <div>
+//               <div style={{ fontWeight:800, fontSize:15, color:"#0F172A" }}>⚡ Batch Stock Update</div>
+//               <div style={{ fontSize:12, color:"#94A3B8", marginTop:2 }}>
+//                 Multiple products ek saath update/add karo. Existing = update, naya = create.
+//               </div>
+//             </div>
+//             <button onClick={() => setBatchRows(r => [...r, newRow()])} style={{ ...primaryBtn, padding:"8px 16px", fontSize:12 }}>
+//               + Row Add
+//             </button>
+//           </div>
+
+//           <div style={{ overflowX:"auto" }}>
+//             <table style={{ width:"100%", borderCollapse:"collapse", minWidth:700 }}>
+//               <thead>
+//                 <tr>
+//                   <th style={{ ...th, width:36 }}>#</th>
+//                   <th style={{ ...th, minWidth:180 }}>Product *</th>
+//                   <th style={{ ...th, minWidth:110 }}>Total Stock *</th>
+//                   <th style={{ ...th, minWidth:100 }}>Min Stock</th>
+//                   <th style={{ ...th, minWidth:150 }}>Expiry Date</th>
+//                   <th style={{ ...th, width:40 }}></th>
+//                 </tr>
+//               </thead>
+//               <tbody>
+//                 {batchRows.map((row, idx) => (
+//                   <tr key={row.id}
+//                     onMouseEnter={e => e.currentTarget.style.background="#F8FAFC"}
+//                     onMouseLeave={e => e.currentTarget.style.background="transparent"}
+//                     style={{ transition:"background .1s" }}
+//                   >
+//                     <td style={{ ...td, color:"#94A3B8", fontFamily:"monospace", verticalAlign:"middle" }}>{idx+1}</td>
+//                     <td style={{ ...td, verticalAlign:"middle" }}>
+//                       <select
+//                         value={row.productId}
+//                         onChange={e => updateRow(row.id, "productId", e.target.value)}
+//                         style={{ ...inputStyle, marginBottom:0 }}
+//                       >
+//                         <option value="">Select product…</option>
+//                         {products.map(p => (
+//                           <option key={p._id} value={p._id}>{p.name}</option>
+//                         ))}
+//                       </select>
+//                     </td>
+//                     <td style={{ ...td, verticalAlign:"middle" }}>
+//                       <input
+//                         type="number" min="0" placeholder="0" value={row.totalStock}
+//                         onChange={e => updateRow(row.id, "totalStock", e.target.value)}
+//                         style={{ ...inputStyle, marginBottom:0, width:100 }}
+//                       />
+//                     </td>
+//                     <td style={{ ...td, verticalAlign:"middle" }}>
+//                       <input
+//                         type="number" min="0" placeholder="5" value={row.minStock}
+//                         onChange={e => updateRow(row.id, "minStock", e.target.value)}
+//                         style={{ ...inputStyle, marginBottom:0, width:90 }}
+//                       />
+//                     </td>
+//                     <td style={{ ...td, verticalAlign:"middle" }}>
+//                       <div>
+//                         <input
+//                           type="date" value={row.expiryDate}
+//                           onChange={e => updateRow(row.id, "expiryDate", e.target.value)}
+//                           style={{ ...inputStyle, marginBottom:0, width:145 }}
+//                         />
+//                         {row.expiryDate && (
+//                           <div style={{ marginTop:4, fontSize:10, fontWeight:700, color: EXPIRY_COLORS[expiryLevel(row.expiryDate)].text }}>
+//                             {(() => { const d = daysLeft(row.expiryDate); return d < 0 ? `Expired ${Math.abs(d)}d ago` : `${d}d left`; })()}
+//                           </div>
+//                         )}
+//                       </div>
+//                     </td>
+//                     <td style={{ ...td, verticalAlign:"middle" }}>
+//                       <button
+//                         onClick={() => setBatchRows(r => r.length > 1 ? r.filter(x => x.id !== row.id) : r)}
+//                         disabled={batchRows.length === 1}
+//                         style={{ background:"none", border:"none", cursor:"pointer", color:"#EF4444", fontSize:16, opacity: batchRows.length===1 ? 0.3 : 1 }}
+//                       >✕</button>
+//                     </td>
+//                   </tr>
+//                 ))}
+//               </tbody>
+//             </table>
+//           </div>
+
+//           <div style={{ padding:"14px 20px", borderTop:"1px solid #F3F4F6", background:"#FAFAFA", display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, flexWrap:"wrap" }}>
+//             <span style={{ fontSize:12, color:"#6B7280" }}>
+//               <b style={{ color:"#111827" }}>{batchRows.filter(r => r.productId && r.totalStock !== "").length}</b> valid /
+//               <b style={{ color:"#111827" }}> {batchRows.length}</b> rows
+//             </span>
+//             <div style={{ display:"flex", gap:8 }}>
+//               <button onClick={() => setBatchRows([newRow()])} style={secondaryBtn}>Reset</button>
+//               <button
+//                 onClick={saveBatch}
+//                 disabled={saving || !batchRows.some(r => r.productId && r.totalStock !== "")}
+//                 style={{ ...primaryBtn, opacity: saving ? 0.6 : 1 }}
+//               >
+//                 {saving ? "Saving…" : `Save ${batchRows.filter(r=>r.productId&&r.totalStock!=="").length} Items`}
+//               </button>
+//             </div>
+//           </div>
+//         </div>
+//       )}
+
+//       <style>{`
+//         @keyframes slideIn { from { transform: translateX(20px); opacity:0; } to { transform:translateX(0); opacity:1; } }
+//         input:focus, select:focus { border-color: #2563EB !important; box-shadow: 0 0 0 3px rgba(37,99,235,.1); }
+//       `}</style>
+//     </div>
+//   );
+// }
+
+// /* ─── Small action button ─── */
+// function ActionBtn({ color, bg, border, onClick, children }) {
+//   return (
+//     <button
+//       onClick={onClick}
+//       style={{
+//         padding:"5px 11px", background:bg, color, border:`1px solid ${border}`,
+//         borderRadius:6, cursor:"pointer", fontSize:12, fontWeight:700, transition:"opacity .15s",
+//       }}
+//       onMouseEnter={e => e.currentTarget.style.opacity="0.8"}
+//       onMouseLeave={e => e.currentTarget.style.opacity="1"}
+//     >{children}</button>
+//   );
+// }
+
+
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import axios from "axios";
 
 const INVENTORY_API = "https://foodhelpervendor.onrender.com/api/vendor/inventory";
-const PRODUCT_API = "https://foodhelpervendor.onrender.com/api/vendor/products";
+const PRODUCT_API   = "https://foodhelpervendor.onrender.com/api/vendor/products";
 
 const axiosAuth = axios.create();
 axiosAuth.interceptors.request.use((config) => {
@@ -12,601 +840,1113 @@ axiosAuth.interceptors.request.use((config) => {
   return config;
 });
 
-const INITIAL_FORM = { productId: "", totalStock: "", minStock: 5 };
+/* ─── Helpers ─── */
+const toNum = (v, fb = 0) => { const n = Number(v); return isNaN(n) ? fb : n; };
+const fmtDate = (d) =>
+  d ? new Date(d).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : null;
+const daysLeft = (d) =>
+  d ? Math.ceil((new Date(d) - Date.now()) / 86400000) : null;
 
-export default function VendorInventory() {
-  const [items, setItems] = useState([]);
-  const [products, setProducts] = useState([]);
+const expiryLevel = (d) => {
+  const days = daysLeft(d);
+  if (days === null) return "none";
+  if (days < 0)   return "expired";
+  if (days <= 7)  return "critical";
+  if (days <= 30) return "warning";
+  return "ok";
+};
+
+const EXPIRY_COLORS = {
+  expired:  { bg:"#FEF2F2", text:"#DC2626", border:"#FECACA" },
+  critical: { bg:"#FFF7ED", text:"#C2410C", border:"#FED7AA" },
+  warning:  { bg:"#FEFCE8", text:"#A16207", border:"#FEF08A" },
+  ok:       { bg:"#F0FDF4", text:"#15803D", border:"#BBF7D0" },
+  none:     { bg:"transparent", text:"#94A3B8", border:"transparent" },
+};
+
+/* ─── Tiny UI Components ─── */
+const StatusBadge = ({ item }) => {
+  if (item.outOfStock)
+    return <Pill bg="#FEE2E2" color="#DC2626">Out of Stock</Pill>;
+  if (item.availableStock <= item.minStock)
+    return <Pill bg="#FEF3C7" color="#D97706">Low Stock</Pill>;
+  return <Pill bg="#DCFCE7" color="#16A34A">In Stock</Pill>;
+};
+
+const ExpiryBadge = ({ date }) => {
+  if (!date) return <span style={{ color:"#CBD5E1", fontSize:12 }}>—</span>;
+  const days = daysLeft(date);
+  const level = expiryLevel(date);
+  const c = EXPIRY_COLORS[level];
+  const label =
+    days < 0  ? `Expired ${Math.abs(days)}d ago` :
+    days === 0 ? "Expires today!" :
+    days === 1 ? "Expires tomorrow" :
+                 `${days}d left`;
+  return (
+    <div>
+      <div style={{ fontSize:12, fontWeight:700, color: c.text }}>{fmtDate(date)}</div>
+      <div style={{
+        display:"inline-block", marginTop:3, padding:"2px 7px",
+        borderRadius:20, fontSize:10, fontWeight:700,
+        background: c.bg, color: c.text, border:`1px solid ${c.border}`,
+      }}>{label}</div>
+    </div>
+  );
+};
+
+const Pill = ({ bg, color, children }) => (
+  <span style={{
+    display:"inline-block", padding:"3px 10px", borderRadius:20,
+    fontSize:11, fontWeight:700, background:bg, color,
+  }}>{children}</span>
+);
+
+const UrgencyTag = ({ item }) => {
+  const level = expiryLevel(item.expiryDate);
+  if (item.outOfStock) return <span style={urgTag("#FEE2E2","#DC2626")}>⚠ Out of Stock</span>;
+  if (item.availableStock <= item.minStock) return <span style={urgTag("#FEF3C7","#D97706")}>↓ Low Stock</span>;
+  if (level === "expired")  return <span style={urgTag("#FEE2E2","#DC2626")}>✕ Expired</span>;
+  if (level === "critical") return <span style={urgTag("#FFF7ED","#C2410C")}>! Expiring Soon</span>;
+  if (level === "warning")  return <span style={urgTag("#FEFCE8","#A16207")}>~ Exp. This Month</span>;
+  return null;
+};
+const urgTag = (bg, color) => ({
+  display:"inline-block", padding:"2px 8px", borderRadius:4,
+  fontSize:10, fontWeight:700, background:bg, color,
+});
+
+const StatCard = ({ label, value, color, sub }) => (
+  <div style={{
+    flex:"0 0 auto", minWidth:130, background:"#fff",
+    border:"1px solid #E5E7EB", borderRadius:12,
+    padding:"14px 18px", borderTop:`3px solid ${color}`,
+  }}>
+    <div style={{ fontSize:22, fontWeight:800, color, fontVariantNumeric:"tabular-nums" }}>{value}</div>
+    <div style={{ fontSize:11, color:"#6B7280", marginTop:3, fontWeight:600 }}>{label}</div>
+    {sub && <div style={{ fontSize:10, color:color, marginTop:2 }}>{sub}</div>}
+  </div>
+);
+
+const Toast = ({ msg, type }) => msg ? (
+  <div style={{
+    position:"fixed", top:20, right:20, zIndex:2000,
+    background: type==="error" ? "#EF4444" : "#059669",
+    color:"#fff", padding:"12px 20px", borderRadius:10,
+    fontWeight:600, fontSize:13, boxShadow:"0 4px 20px rgba(0,0,0,.2)",
+    animation:"slideIn .2s ease",
+  }}>{msg}</div>
+) : null;
+
+const Confirm = ({ open, msg, onOk, onCancel }) => !open ? null : (
+  <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,.45)", display:"flex", alignItems:"center", justifyContent:"center", zIndex:1500 }}>
+    <div style={{ background:"#fff", borderRadius:14, padding:"28px 32px", maxWidth:380, width:"90%", boxShadow:"0 20px 60px rgba(0,0,0,.2)" }}>
+      <div style={{ fontWeight:700, fontSize:15, color:"#111827", marginBottom:10 }}>Confirm Delete</div>
+      <p style={{ color:"#4B5563", fontSize:13, marginBottom:20 }}>{msg}</p>
+      <div style={{ display:"flex", gap:10, justifyContent:"flex-end" }}>
+        <button onClick={onCancel} style={secondaryBtn}>Cancel</button>
+        <button onClick={onOk} style={{ ...primaryBtn, background:"#EF4444" }}>Yes, Delete</button>
+      </div>
+    </div>
+  </div>
+);
+
+const RestockModal = ({ item, onClose, onSave }) => {
+  const [qty, setQty] = useState("");
   const [loading, setLoading] = useState(false);
-  const [submitLoading, setSubmitLoading] = useState(false);
-  const [deleteLoading, setDeleteLoading] = useState(null);
-  const [form, setForm] = useState(INITIAL_FORM);
-  const [editId, setEditId] = useState(null);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
-  const [search, setSearch] = useState("");
-  const [confirmDelete, setConfirmDelete] = useState(null);
+  if (!item) return null;
+  const submit = async () => {
+    const n = toNum(qty);
+    if (!n || n <= 0) return alert("Valid positive quantity enter karo");
+    setLoading(true);
+    await onSave(n);
+    setLoading(false);
+    onClose();
+  };
+  return (
+    <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,.45)", display:"flex", alignItems:"center", justifyContent:"center", zIndex:1500 }}>
+      <div style={{ background:"#fff", borderRadius:14, padding:"28px 32px", maxWidth:360, width:"90%", boxShadow:"0 20px 60px rgba(0,0,0,.2)" }}>
+        <div style={{ fontWeight:700, fontSize:15, marginBottom:4 }}>+ Restock</div>
+        <div style={{ fontSize:13, color:"#374151", fontWeight:600, marginBottom:4 }}>{item.product?.name}</div>
+        <div style={{ fontSize:12, color:"#6B7280", marginBottom:18 }}>
+          Current available: <b style={{ color:"#2563EB" }}>{item.availableStock}</b> units
+        </div>
+        <label style={labelStyle}>Add Quantity</label>
+        <input
+          type="number" min="1" value={qty}
+          onChange={e => setQty(e.target.value)}
+          placeholder="e.g. 50" style={{ ...inputStyle, marginBottom:16 }}
+          autoFocus onKeyDown={e => e.key === "Enter" && submit()}
+        />
+        <div style={{ display:"flex", gap:10, justifyContent:"flex-end" }}>
+          <button onClick={onClose} style={secondaryBtn}>Cancel</button>
+          <button onClick={submit} disabled={loading} style={{ ...primaryBtn, background:"#059669" }}>
+            {loading ? "Saving…" : "+ Add Stock"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
-  /* ─────────────── FETCH ─────────────── */
-  const fetchInventory = async () => {
+/* ─── Shared Styles ─── */
+const primaryBtn = {
+  padding:"9px 20px", background:"#2563EB", color:"#fff",
+  border:"none", borderRadius:8, cursor:"pointer", fontWeight:700, fontSize:13,
+};
+const secondaryBtn = {
+  padding:"9px 18px", background:"#F1F5F9", border:"1px solid #D1D5DB",
+  borderRadius:8, cursor:"pointer", fontSize:13, color:"#374151",
+};
+const inputStyle = {
+  width:"100%", padding:"9px 12px", borderRadius:8,
+  border:"1px solid #D1D5DB", fontSize:13, outline:"none",
+  background:"#F9FAFB", boxSizing:"border-box", display:"block",
+};
+const labelStyle = {
+  display:"block", fontSize:11, fontWeight:700,
+  color:"#374151", marginBottom:5, textTransform:"uppercase", letterSpacing:"0.04em",
+};
+const th = {
+  padding:"10px 14px", textAlign:"left", fontSize:11,
+  fontWeight:700, color:"#6B7280", borderBottom:"1px solid #E5E7EB",
+  background:"#F9FAFB", textTransform:"uppercase", letterSpacing:"0.05em",
+  whiteSpace:"nowrap",
+};
+const td = { padding:"11px 14px", fontSize:13, borderBottom:"1px solid #F3F4F6", color:"#374151" };
+
+/* ══════════════════════════════════════
+   BATCH ROWS EDITOR — used inside Add/Edit form
+══════════════════════════════════════ */
+const newBatchRow = () => ({
+  id: Date.now() + Math.random(),
+  batchNo: "",
+  mfgDate: "",
+  expiryDate: "",
+  qty: "",
+});
+
+function BatchRowsEditor({ rows, onChange }) {
+  const addRow = () => onChange([...rows, newBatchRow()]);
+  const removeRow = (id) => onChange(rows.length > 1 ? rows.filter(r => r.id !== id) : rows);
+  const updateRow = (id, key, val) =>
+    onChange(rows.map(r => r.id === id ? { ...r, [key]: val } : r));
+
+  const totalQty = rows.reduce((s, r) => s + toNum(r.qty), 0);
+
+  return (
+    <div style={{
+      border:"1px solid #C7D2FE", borderRadius:10,
+      overflow:"hidden", marginTop:4,
+    }}>
+      {/* Header */}
+      <div style={{
+        background:"#EEF2FF", padding:"10px 14px",
+        display:"flex", justifyContent:"space-between", alignItems:"center",
+        borderBottom:"1px solid #C7D2FE",
+      }}>
+        <div style={{ fontSize:12, fontWeight:700, color:"#4338CA" }}>
+          📦 Batch Details
+          {totalQty > 0 && (
+            <span style={{
+              marginLeft:10, background:"#4338CA", color:"#fff",
+              padding:"2px 8px", borderRadius:20, fontSize:11,
+            }}>Total: {totalQty} units</span>
+          )}
+        </div>
+        <button
+          type="button"
+          onClick={addRow}
+          style={{
+            padding:"5px 12px", background:"#4338CA", color:"#fff",
+            border:"none", borderRadius:6, cursor:"pointer",
+            fontSize:12, fontWeight:700,
+          }}
+        >+ Add Batch</button>
+      </div>
+
+      {/* Rows */}
+      <div style={{ overflowX:"auto" }}>
+        <table style={{ width:"100%", borderCollapse:"collapse", minWidth:560 }}>
+          <thead>
+            <tr style={{ background:"#F5F3FF" }}>
+              <th style={{ ...th, background:"#F5F3FF", color:"#6D28D9", fontSize:10 }}>#</th>
+              <th style={{ ...th, background:"#F5F3FF", color:"#6D28D9", fontSize:10 }}>Batch No.</th>
+              <th style={{ ...th, background:"#F5F3FF", color:"#6D28D9", fontSize:10 }}>Mfg. Date</th>
+              <th style={{ ...th, background:"#F5F3FF", color:"#6D28D9", fontSize:10 }}>Expiry Date</th>
+              <th style={{ ...th, background:"#F5F3FF", color:"#6D28D9", fontSize:10 }}>Qty *</th>
+              <th style={{ ...th, background:"#F5F3FF", width:36 }}></th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row, idx) => {
+              const level = expiryLevel(row.expiryDate);
+              const eColor = EXPIRY_COLORS[level];
+              return (
+                <tr key={row.id}
+                  onMouseEnter={e => e.currentTarget.style.background="#FAFAFA"}
+                  onMouseLeave={e => e.currentTarget.style.background="transparent"}
+                >
+                  <td style={{ ...td, color:"#94A3B8", fontSize:12, width:28, textAlign:"center" }}>{idx + 1}</td>
+                  <td style={td}>
+                    <input
+                      type="text"
+                      placeholder="LOT-001"
+                      value={row.batchNo}
+                      onChange={e => updateRow(row.id, "batchNo", e.target.value)}
+                      style={{ ...inputStyle, width:100, marginBottom:0 }}
+                    />
+                  </td>
+                  <td style={td}>
+                    <input
+                      type="date"
+                      value={row.mfgDate}
+                      onChange={e => updateRow(row.id, "mfgDate", e.target.value)}
+                      style={{ ...inputStyle, width:138, marginBottom:0 }}
+                    />
+                  </td>
+                  <td style={td}>
+                    <div>
+                      <input
+                        type="date"
+                        value={row.expiryDate}
+                        onChange={e => updateRow(row.id, "expiryDate", e.target.value)}
+                        style={{
+                          ...inputStyle, width:138, marginBottom:0,
+                          borderColor: row.expiryDate ? eColor.border : "#D1D5DB",
+                        }}
+                      />
+                      {row.expiryDate && (
+                        <div style={{
+                          marginTop:3, fontSize:10, fontWeight:700,
+                          color: eColor.text,
+                        }}>
+                          {(() => {
+                            const d = daysLeft(row.expiryDate);
+                            return d < 0 ? `Expired ${Math.abs(d)}d ago` : `${d}d left`;
+                          })()}
+                        </div>
+                      )}
+                    </div>
+                  </td>
+                  <td style={td}>
+                    <input
+                      type="number"
+                      min="1"
+                      placeholder="0"
+                      value={row.qty}
+                      onChange={e => updateRow(row.id, "qty", e.target.value)}
+                      style={{ ...inputStyle, width:80, marginBottom:0, fontWeight:700 }}
+                    />
+                  </td>
+                  <td style={{ ...td, textAlign:"center" }}>
+                    <button
+                      type="button"
+                      onClick={() => removeRow(row.id)}
+                      disabled={rows.length === 1}
+                      style={{
+                        background:"none", border:"none", cursor:"pointer",
+                        color:"#EF4444", fontSize:16,
+                        opacity: rows.length === 1 ? 0.3 : 1,
+                      }}
+                    >✕</button>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Footer hint */}
+      <div style={{
+        padding:"8px 14px", background:"#F5F3FF",
+        borderTop:"1px solid #C7D2FE",
+        fontSize:11, color:"#7C3AED",
+      }}>
+        💡 Batch No. optional hai. Qty required hai. Nearest expiry automatically set hogi.
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════
+   MAIN COMPONENT
+══════════════════════════════════════ */
+export default function VendorInventory() {
+  const [tab, setTab]           = useState("inventory");
+  const [items, setItems]       = useState([]);
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading]   = useState(false);
+  const [saving, setSaving]     = useState(false);
+
+  const [toast, setToast]       = useState({ msg:"", type:"success" });
+  const showToast = (msg, type="success") => {
+    setToast({ msg, type });
+    setTimeout(() => setToast({ msg:"", type:"success" }), 3500);
+  };
+
+  const [confirm, setConfirm]   = useState({ open:false, msg:"", cb:null });
+  const askConfirm = (msg, cb) => setConfirm({ open:true, msg, cb });
+  const closeConfirm = ()       => setConfirm({ open:false, msg:"", cb:null });
+
+  const [restockItem, setRestockItem] = useState(null);
+
+  const [search, setSearch]     = useState("");
+  const [status, setStatus]     = useState("ALL");
+
+  /* form */
+  const emptyForm = { productId:"", totalStock:"", minStock:"5", expiryDate:"" };
+  const [form, setForm]         = useState(emptyForm);
+  const [editId, setEditId]     = useState(null);
+
+  /* ── Stock mode: "simple" | "batch" ── */
+  const [stockMode, setStockMode] = useState("simple");
+  const [batchFormRows, setBatchFormRows] = useState([newBatchRow()]);
+
+  /* batch tab */
+  const newRow = () => ({ id: Date.now()+Math.random(), productId:"", totalStock:"", minStock:"5", expiryDate:"" });
+  const [batchRows, setBatchRows] = useState([newRow()]);
+
+  /* ── Fetch ── */
+  const fetchInventory = useCallback(async () => {
     try {
       setLoading(true);
       const res = await axiosAuth.get(INVENTORY_API);
       if (res.data?.success) {
-        // ✅ FIX: null/undefined product wale items filter karo
-        const validItems = res.data.data.filter((x) => x.product && x.product._id);
-        setItems(validItems);
+        setItems(res.data.data.filter(x => x.product && x.product._id));
       }
-    } catch (err) {
-      showError(err?.response?.data?.message || "Failed to fetch inventory");
-    } finally {
-      setLoading(false);
-    }
-  };
+    } catch (e) {
+      showToast(e?.response?.data?.message || "Failed to fetch inventory", "error");
+    } finally { setLoading(false); }
+  }, []);
 
-  const fetchProducts = async () => {
+  const fetchProducts = useCallback(async () => {
     try {
       const res = await axiosAuth.get(PRODUCT_API);
       if (res.data?.success) setProducts(res.data.data);
-    } catch {
-      showError("Failed to fetch products");
-    }
-  };
-
-  useEffect(() => {
-    fetchInventory();
-    fetchProducts();
+    } catch { showToast("Failed to fetch products", "error"); }
   }, []);
 
-  /* ─────────────── HELPERS ─────────────── */
-  const showError = (msg) => {
-    setError(msg);
-    setTimeout(() => setError(""), 4000);
-  };
+  useEffect(() => { fetchInventory(); fetchProducts(); }, []);
 
-  const showSuccess = (msg) => {
-    setSuccess(msg);
-    setTimeout(() => setSuccess(""), 3000);
-  };
+  /* ── Smart sort ── */
+  const sortItems = useCallback((list) => {
+    const score = (x) => {
+      let s = 0;
+      if (x.outOfStock) s += 1000;
+      else if (x.availableStock <= x.minStock) s += 500;
+      const days = daysLeft(x.expiryDate);
+      if (days !== null) {
+        if (days <= 0)  s += 800;
+        else if (days <= 7)  s += 400;
+        else if (days <= 30) s += 200;
+      }
+      return s;
+    };
+    return [...list].sort((a, b) => {
+      const d = score(b) - score(a);
+      if (d !== 0) return d;
+      const da = a.expiryDate ? new Date(a.expiryDate) : null;
+      const db = b.expiryDate ? new Date(b.expiryDate) : null;
+      if (da && db) return da - db;
+      if (da) return -1;
+      if (db) return 1;
+      return 0;
+    });
+  }, []);
 
+  /* ── Filtered ── */
+  const filtered = useMemo(() => {
+    const q = search.toLowerCase();
+    const base = items.filter(x => {
+      const nameOk = !q || x.product?.name?.toLowerCase().includes(q);
+      const days   = daysLeft(x.expiryDate);
+      const statOk =
+        status === "ALL"      ? true :
+        status === "OUT"      ? x.outOfStock :
+        status === "LOW"      ? (!x.outOfStock && x.availableStock <= x.minStock) :
+        status === "EXPIRING" ? (days !== null && days <= 30) :
+        (!x.outOfStock && x.availableStock > x.minStock);
+      return nameOk && statOk;
+    });
+    return sortItems(base);
+  }, [items, search, status, sortItems]);
+
+  /* ── Stats ── */
+  const stats = useMemo(() => ({
+    total:    items.length,
+    ok:       items.filter(x => !x.outOfStock && x.availableStock > x.minStock).length,
+    low:      items.filter(x => !x.outOfStock && x.availableStock <= x.minStock).length,
+    out:      items.filter(x => x.outOfStock).length,
+    expiring: items.filter(x => { const d = daysLeft(x.expiryDate); return d !== null && d <= 30 && !x.outOfStock; }).length,
+  }), [items]);
+
+  /* ── Reset form helper ── */
   const resetForm = () => {
-    setForm(INITIAL_FORM);
+    setForm(emptyForm);
     setEditId(null);
+    setStockMode("simple");
+    setBatchFormRows([newBatchRow()]);
   };
 
-  const handleChange = (e) =>
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-
-  /* ─────────────── CREATE ─────────────── */
-  const handleCreate = async () => {
-    if (!form.productId || form.totalStock === "") {
-      showError("Product and Total Stock are required.");
-      return;
-    }
-    try {
-      setSubmitLoading(true);
-      const res = await axiosAuth.post(INVENTORY_API, {
-        productId: form.productId,
-        totalStock: Number(form.totalStock),
-        minStock: Number(form.minStock),
-      });
-      if (res.data?.success) {
-        showSuccess("Inventory added successfully!");
-        fetchInventory();
-        resetForm();
-      }
-    } catch (err) {
-      showError(err?.response?.data?.message || "Failed to add inventory");
-    } finally {
-      setSubmitLoading(false);
-    }
-  };
-
-  /* ─────────────── UPDATE ─────────────── */
-  const handleUpdate = async () => {
-    if (form.totalStock === "") {
-      showError("Total Stock is required.");
-      return;
-    }
-    try {
-      setSubmitLoading(true);
-      const res = await axiosAuth.put(`${INVENTORY_API}/${editId}`, {
-        totalStock: Number(form.totalStock),
-        minStock: Number(form.minStock),
-      });
-      if (res.data?.success) {
-        showSuccess("Inventory updated successfully!");
-        fetchInventory();
-        resetForm();
-      }
-    } catch (err) {
-      showError(err?.response?.data?.message || "Failed to update inventory");
-    } finally {
-      setSubmitLoading(false);
-    }
-  };
-
-  const handleSubmit = (e) => {
+  /* ── Submit ── */
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (editId) handleUpdate();
-    else handleCreate();
+    if (!editId && !form.productId) return showToast("Product select karo", "error");
+
+    if (stockMode === "batch") {
+      const validBatches = batchFormRows.filter(r => r.qty && toNum(r.qty) > 0);
+      if (!validBatches.length) return showToast("Kam se kam ek batch mein qty daalo", "error");
+    } else {
+      if (form.totalStock === "") return showToast("Total stock required", "error");
+    }
+
+    setSaving(true);
+    try {
+      let body;
+      if (stockMode === "batch") {
+        const validBatches = batchFormRows
+          .filter(r => r.qty && toNum(r.qty) > 0)
+          .map(r => ({
+            batchNo:    r.batchNo.trim(),
+            mfgDate:    r.mfgDate    || null,
+            expiryDate: r.expiryDate || null,
+            qty:        toNum(r.qty),
+          }));
+        body = {
+          minStock: toNum(form.minStock, 5),
+          batches:  validBatches,
+        };
+      } else {
+        body = {
+          totalStock: toNum(form.totalStock),
+          minStock:   toNum(form.minStock, 5),
+          expiryDate: form.expiryDate || null,
+        };
+      }
+
+      if (editId) {
+        await axiosAuth.put(`${INVENTORY_API}/${editId}`, body);
+        showToast("Inventory updated!");
+      } else {
+        await axiosAuth.post(INVENTORY_API, { ...body, productId: form.productId });
+        showToast("Inventory added!");
+      }
+      resetForm();
+      fetchInventory();
+    } catch (e) {
+      showToast(e?.response?.data?.message || "Save failed", "error");
+    } finally { setSaving(false); }
   };
 
-  /* ─────────────── SET EDIT ─────────────── */
   const handleEdit = (inv) => {
+    const hasBatches = inv.batches && inv.batches.length > 0;
     setForm({
-      productId: inv.product?._id || "",
-      totalStock: inv.totalStock,
-      minStock: inv.minStock,
+      productId:  inv.product?._id || "",
+      totalStock: String(inv.totalStock),
+      minStock:   String(inv.minStock),
+      expiryDate: inv.expiryDate ? inv.expiryDate.slice(0, 10) : "",
     });
     setEditId(inv._id);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
-  /* ─────────────── DELETE ─────────────── */
-  const handleDeleteConfirm = (id) => setConfirmDelete(id);
-
-  const handleDelete = async () => {
-    const id = confirmDelete;
-    setConfirmDelete(null);
-    try {
-      setDeleteLoading(id);
-      const res = await axiosAuth.delete(`${INVENTORY_API}/${id}`);
-      if (res.data?.success) {
-        showSuccess("Inventory deleted.");
-        setItems((prev) => prev.filter((x) => x._id !== id));
-        if (editId === id) resetForm();
-      }
-    } catch (err) {
-      showError(err?.response?.data?.message || "Failed to delete");
-    } finally {
-      setDeleteLoading(null);
+    if (hasBatches) {
+      setStockMode("batch");
+      setBatchFormRows(inv.batches.map(b => ({
+        id:        b._id || (Date.now() + Math.random()),
+        batchNo:   b.batchNo   || "",
+        mfgDate:   b.mfgDate   ? b.mfgDate.slice(0,10)   : "",
+        expiryDate:b.expiryDate ? b.expiryDate.slice(0,10) : "",
+        qty:       String(b.qty || ""),
+      })));
+    } else {
+      setStockMode("simple");
+      setBatchFormRows([newBatchRow()]);
     }
+    setTab("add");
+    window.scrollTo({ top:0, behavior:"smooth" });
   };
 
-  /* ─────────────── RESTOCK ─────────────── */
-  const handleRestock = async (inv) => {
-    const qty = prompt(
-      `Add stock for "${inv.product?.name}":\nCurrent: ${inv.availableStock}`
+  const handleDelete = (inv) => {
+    askConfirm(
+      `"${inv.product?.name}" ka inventory record delete karein? Yeh undo nahi hoga.`,
+      async () => {
+        closeConfirm();
+        try {
+          await axiosAuth.delete(`${INVENTORY_API}/${inv._id}`);
+          setItems(prev => prev.filter(x => x._id !== inv._id));
+          if (editId === inv._id) resetForm();
+          showToast("Deleted!");
+        } catch (e) { showToast(e?.response?.data?.message || "Delete failed", "error"); }
+      }
     );
-    if (qty === null || qty === "") return;
-    const num = Number(qty);
-    if (isNaN(num) || num <= 0) {
-      showError("Enter a valid positive number.");
-      return;
-    }
-    try {
-      setDeleteLoading(inv._id);
-      const res = await axiosAuth.patch(`${INVENTORY_API}/${inv._id}/restock`, {
-        quantity: num,
-      });
-      if (res.data?.success) {
-        showSuccess(`+${num} stock added to "${inv.product?.name}"`);
-        fetchInventory();
-      }
-    } catch (err) {
-      showError(err?.response?.data?.message || "Restock failed");
-    } finally {
-      setDeleteLoading(null);
-    }
   };
 
-  /* ─────────────── FILTER ─────────────── */
-  // ✅ FIX: items already valid hain (fetchInventory mein filter ho chuke), search bhi safe
-  const filtered = items.filter((x) =>
-    x.product?.name?.toLowerCase().includes(search.toLowerCase())
-  );
+  const handleRestock = async (qty) => {
+    try {
+      await axiosAuth.patch(`${INVENTORY_API}/${restockItem._id}/restock`, { quantity: qty });
+      showToast(`+${qty} stock added!`);
+      fetchInventory();
+    } catch (e) { showToast(e?.response?.data?.message || "Restock failed", "error"); }
+  };
 
-  // ✅ FIX: stats ab valid items pe based hain
-  const lowStockCount = items.filter(
-    (x) => !x.outOfStock && x.availableStock <= x.minStock
-  ).length;
-  const outOfStockCount = items.filter((x) => x.outOfStock).length;
+  /* ── Batch tab save ── */
+  const saveBatch = async () => {
+    const valid = batchRows.filter(r => r.productId && r.totalStock !== "");
+    if (!valid.length) return showToast("Kam se kam ek valid row fill karo", "error");
+    setSaving(true);
+    try {
+      const res = await axiosAuth.post(`${INVENTORY_API}/batch`, {
+        items: valid.map(r => ({
+          productId:  r.productId,
+          totalStock: toNum(r.totalStock),
+          minStock:   toNum(r.minStock, 5),
+          expiryDate: r.expiryDate || null,
+        })),
+      });
+      const d = res.data?.data;
+      showToast(`${d?.created?.length||0} created, ${d?.updated?.length||0} updated!`);
+      setBatchRows([newRow()]);
+      fetchInventory();
+    } catch (e) { showToast(e?.response?.data?.message || "Batch save failed", "error"); }
+    finally { setSaving(false); }
+  };
 
-  /* ─────────────── RENDER ─────────────── */
+  const updateRow = (id, k, v) => setBatchRows(r => r.map(row => row.id === id ? { ...row, [k]: v } : row));
+
+  /* ── Batch form total qty ── */
+  const batchFormTotal = batchFormRows.reduce((s, r) => s + toNum(r.qty), 0);
+
+  /* ── Render ── */
+  const TABS = [
+    { id:"inventory", label:"📦 Stock List" },
+    { id:"add",       label:"✏️ Add / Edit" },
+    { id:"batch",     label:"⚡ Batch Update" },
+  ];
+
   return (
-    <div style={styles.page}>
-      {/* ── TOAST ── */}
-      {error && <div style={styles.toastError}>{error}</div>}
-      {success && <div style={styles.toastSuccess}>{success}</div>}
+    <div style={{ fontFamily:"'Segoe UI', system-ui, sans-serif", padding:"20px 24px", maxWidth:1100, margin:"0 auto", color:"#111827", background:"#F8FAFC", minHeight:"100vh" }}>
+      <Toast msg={toast.msg} type={toast.type} />
+      <Confirm open={confirm.open} msg={confirm.msg} onOk={confirm.cb} onCancel={closeConfirm} />
+      <RestockModal item={restockItem} onClose={() => setRestockItem(null)} onSave={handleRestock} />
 
-      {/* ── DELETE CONFIRM MODAL ── */}
-      {confirmDelete && (
-        <div style={styles.overlay}>
-          <div style={styles.modal}>
-            <h3 style={{ marginTop: 0 }}>Confirm Delete</h3>
-            <p>
-              Are you sure you want to delete this inventory record? This action
-              cannot be undone.
-            </p>
-            <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
-              <button
-                style={styles.btnSecondary}
-                onClick={() => setConfirmDelete(null)}
-              >
-                Cancel
+      {/* Header */}
+      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:20, flexWrap:"wrap", gap:12 }}>
+        <div>
+          <div style={{ fontSize:20, fontWeight:800, color:"#0F172A", letterSpacing:"-0.02em" }}>Inventory Management</div>
+          <div style={{ fontSize:12, color:"#94A3B8", marginTop:2 }}>
+            {loading ? "Loading…" : `${items.length} products tracked`}
+          </div>
+        </div>
+        <button onClick={() => { fetchInventory(); fetchProducts(); }} style={secondaryBtn}>↻ Refresh</button>
+      </div>
+
+      {/* Stat Cards */}
+      <div style={{ display:"flex", gap:10, marginBottom:20, flexWrap:"wrap" }}>
+        <StatCard label="Total Products" value={stats.total}    color="#2563EB" />
+        <StatCard label="In Stock"       value={stats.ok}       color="#059669" />
+        <StatCard label="Low Stock"      value={stats.low}      color="#D97706" />
+        <StatCard label="Out of Stock"   value={stats.out}      color="#DC2626" />
+        <StatCard label="Expiring Soon"  value={stats.expiring} color="#9333EA" sub="within 30 days" />
+      </div>
+
+      {/* Alert Banner */}
+      {(stats.out > 0 || stats.expiring > 0) && (
+        <div style={{
+          background:"#FFF7ED", border:"1px solid #FED7AA",
+          borderRadius:10, padding:"12px 16px", marginBottom:16,
+          display:"flex", alignItems:"center", gap:12, flexWrap:"wrap",
+        }}>
+          <span style={{ fontSize:18 }}>⚠️</span>
+          <div style={{ fontSize:13, color:"#92400E" }}>
+            {stats.out > 0 && <span><b>{stats.out} product{stats.out>1?"s":""}</b> out of stock. </span>}
+            {stats.expiring > 0 && <span><b>{stats.expiring} product{stats.expiring>1?"s":""}</b> expiring within 30 days. </span>}
+            <button
+              onClick={() => { setStatus("EXPIRING"); setTab("inventory"); }}
+              style={{ color:"#C2410C", fontWeight:700, background:"none", border:"none", cursor:"pointer", fontSize:13, textDecoration:"underline" }}
+            >View expiring →</button>
+          </div>
+        </div>
+      )}
+
+      {/* Tabs */}
+      <div style={{ display:"flex", background:"#fff", border:"1px solid #E5E7EB", borderRadius:10, overflow:"hidden", marginBottom:20 }}>
+        {TABS.map(t => (
+          <button key={t.id} onClick={() => setTab(t.id)} style={{
+            flex:1, padding:"11px 4px", border:"none", cursor:"pointer",
+            fontSize:13, fontWeight:700, transition:"all .15s",
+            background: tab===t.id ? "#2563EB" : "transparent",
+            color: tab===t.id ? "#fff" : "#6B7280",
+            borderRight:"1px solid #E5E7EB",
+          }}>{t.label}</button>
+        ))}
+      </div>
+
+      {/* ══ TAB: STOCK LIST ══ */}
+      {tab === "inventory" && (
+        <>
+          <div style={{ display:"flex", gap:10, marginBottom:16, flexWrap:"wrap", alignItems:"center" }}>
+            <input
+              type="text" placeholder="🔍 Search product…"
+              value={search} onChange={e => setSearch(e.target.value)}
+              style={{ ...inputStyle, maxWidth:240, flex:"1 1 180px" }}
+            />
+            <div style={{ display:"flex", gap:4, flexWrap:"wrap" }}>
+              {[
+                { k:"ALL",      label:"All",           color:"#2563EB" },
+                { k:"OK",       label:"✓ In Stock",    color:"#059669" },
+                { k:"LOW",      label:"↓ Low",         color:"#D97706" },
+                { k:"OUT",      label:"✕ Out",         color:"#DC2626" },
+                { k:"EXPIRING", label:"⏰ Expiring",   color:"#9333EA" },
+              ].map(({ k, label, color }) => (
+                <button key={k} onClick={() => setStatus(k)} style={{
+                  padding:"7px 13px", borderRadius:8, fontSize:12, fontWeight:700,
+                  border:`1.5px solid ${status===k ? color : "#E5E7EB"}`,
+                  background: status===k ? color : "#fff",
+                  color: status===k ? "#fff" : "#6B7280",
+                  cursor:"pointer", transition:"all .15s",
+                }}>{label}</button>
+              ))}
+            </div>
+            <button onClick={() => { resetForm(); setTab("add"); }}
+              style={{ ...primaryBtn, marginLeft:"auto" }}>
+              + Add Stock
+            </button>
+          </div>
+
+          {loading ? (
+            <div style={{ textAlign:"center", color:"#94A3B8", padding:60, fontSize:14 }}>Loading inventory…</div>
+          ) : filtered.length === 0 ? (
+            <div style={{ textAlign:"center", color:"#CBD5E1", padding:60 }}>
+              <div style={{ fontSize:36, marginBottom:10 }}>📦</div>
+              <div style={{ fontSize:14 }}>No inventory records found.</div>
+            </div>
+          ) : (
+            <div style={{ background:"#fff", borderRadius:12, border:"1px solid #E5E7EB", overflow:"hidden" }}>
+              <div style={{ padding:"11px 16px", borderBottom:"1px solid #F3F4F6", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+                <span style={{ fontSize:12, fontWeight:700, color:"#6B7280" }}>
+                  {filtered.length} of {items.length} products
+                  {(stats.low + stats.out) > 0 && <span style={{ color:"#DC2626", marginLeft:8 }}>• {stats.low + stats.out} need attention</span>}
+                </span>
+                <span style={{ fontSize:11, color:"#94A3B8" }}>Sorted by: critical items first ↑</span>
+              </div>
+              <div style={{ overflowX:"auto" }}>
+                <table style={{ width:"100%", borderCollapse:"collapse" }}>
+                  <thead>
+                    <tr>
+                      <th style={th}>#</th>
+                      <th style={th}>Product</th>
+                      <th style={{ ...th, textAlign:"center" }}>Total</th>
+                      <th style={{ ...th, textAlign:"center" }}>Available</th>
+                      <th style={{ ...th, textAlign:"center" }}>Min Alert</th>
+                      <th style={th}>Expiry Date</th>
+                      <th style={{ ...th, textAlign:"center" }}>Batches</th>
+                      <th style={{ ...th, textAlign:"center" }}>Status</th>
+                      <th style={{ ...th, textAlign:"center" }}>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filtered.map((x, i) => {
+                      const level = expiryLevel(x.expiryDate);
+                      const rowBg =
+                        x.outOfStock ? "#FFF5F5" :
+                        level === "expired"  ? "#FFF5F5" :
+                        level === "critical" ? "#FFFBF0" :
+                        x.availableStock <= x.minStock ? "#FFFDF0" : "transparent";
+                      const batchCount = x.batches?.length || 0;
+                      return (
+                        <tr key={x._id}
+                          style={{ background: rowBg, transition:"background .1s" }}
+                          onMouseEnter={e => e.currentTarget.style.filter="brightness(0.97)"}
+                          onMouseLeave={e => e.currentTarget.style.filter="none"}
+                        >
+                          <td style={{ ...td, color:"#94A3B8", width:40, verticalAlign:"middle" }}>
+                            <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:3 }}>
+                              <span>{i+1}</span>
+                              <UrgencyTag item={x} />
+                            </div>
+                          </td>
+                          <td style={{ ...td, fontWeight:600, color:"#111827", verticalAlign:"middle" }}>
+                            {x.product?.name || "—"}
+                          </td>
+                          <td style={{ ...td, textAlign:"center", verticalAlign:"middle" }}>{x.totalStock}</td>
+                          <td style={{
+                            ...td, textAlign:"center", verticalAlign:"middle",
+                            fontWeight:800, fontSize:15,
+                            color: x.outOfStock ? "#DC2626" : x.availableStock <= x.minStock ? "#D97706" : "#059669"
+                          }}>{x.availableStock}</td>
+                          <td style={{ ...td, textAlign:"center", color:"#94A3B8", verticalAlign:"middle" }}>{x.minStock}</td>
+                          <td style={{ ...td, verticalAlign:"middle" }}>
+                            <ExpiryBadge date={x.expiryDate} />
+                          </td>
+                          <td style={{ ...td, textAlign:"center", verticalAlign:"middle" }}>
+                            {batchCount > 0 ? (
+                              <span style={{
+                                display:"inline-block", padding:"3px 8px", borderRadius:20,
+                                fontSize:11, fontWeight:700,
+                                background:"#EEF2FF", color:"#4338CA",
+                                border:"1px solid #C7D2FE",
+                              }}>
+                                {batchCount} batch{batchCount > 1 ? "es" : ""}
+                              </span>
+                            ) : (
+                              <span style={{ color:"#CBD5E1", fontSize:12 }}>—</span>
+                            )}
+                          </td>
+                          <td style={{ ...td, textAlign:"center", verticalAlign:"middle" }}>
+                            <StatusBadge item={x} />
+                          </td>
+                          <td style={{ ...td, textAlign:"center", verticalAlign:"middle", whiteSpace:"nowrap" }}>
+                            <div style={{ display:"inline-flex", gap:5 }}>
+                              <ActionBtn color="#2563EB" bg="#EFF6FF" border="#BFDBFE" onClick={() => handleEdit(x)}>Edit</ActionBtn>
+                              <ActionBtn color="#059669" bg="#ECFDF5" border="#A7F3D0" onClick={() => setRestockItem(x)}>+Stock</ActionBtn>
+                              <ActionBtn color="#DC2626" bg="#FEF2F2" border="#FECACA" onClick={() => handleDelete(x)}>Delete</ActionBtn>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </>
+      )}
+
+      {/* ══ TAB: ADD/EDIT ══ */}
+      {tab === "add" && (
+        <div style={{ background:"#fff", borderRadius:12, border:"1px solid #E5E7EB", padding:"24px 28px" }}>
+          <div style={{ fontSize:15, fontWeight:800, color:"#0F172A", marginBottom:20 }}>
+            {editId ? "✏️ Update Stock" : "➕ Add New Stock"}
+          </div>
+
+          <form onSubmit={handleSubmit}>
+            {/* ── Top fields: Product + Min Stock ── */}
+            <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(190px, 1fr))", gap:18, marginBottom:20 }}>
+              {/* Product */}
+              <div>
+                <label style={labelStyle}>Product *</label>
+                {editId ? (
+                  <div style={{ ...inputStyle, background:"#F1F5F9", color:"#6B7280", cursor:"not-allowed" }}>
+                    {items.find(x => x._id === editId)?.product?.name || "—"}
+                  </div>
+                ) : (
+                  <select
+                    value={form.productId}
+                    onChange={e => setForm(p => ({ ...p, productId: e.target.value }))}
+                    required style={inputStyle}
+                  >
+                    <option value="">Select Product…</option>
+                    {products.map(p => (
+                      <option key={p._id} value={p._id}>{p.name}</option>
+                    ))}
+                  </select>
+                )}
+              </div>
+
+              {/* Min Stock */}
+              <div>
+                <label style={labelStyle}>Min Stock Alert</label>
+                <input
+                  type="number" min="0" placeholder="e.g. 5"
+                  value={form.minStock}
+                  onChange={e => setForm(p => ({ ...p, minStock: e.target.value }))}
+                  style={inputStyle}
+                />
+              </div>
+            </div>
+
+            {/* ── Stock Mode Toggle ── */}
+            <div style={{ marginBottom:16 }}>
+              <label style={{ ...labelStyle, marginBottom:10 }}>Stock Entry Mode</label>
+              <div style={{
+                display:"inline-flex", background:"#F1F5F9",
+                borderRadius:10, padding:4, gap:4,
+              }}>
+                <button
+                  type="button"
+                  onClick={() => setStockMode("simple")}
+                  style={{
+                    padding:"8px 18px", borderRadius:8, border:"none",
+                    cursor:"pointer", fontSize:13, fontWeight:700, transition:"all .15s",
+                    background: stockMode === "simple" ? "#fff" : "transparent",
+                    color:      stockMode === "simple" ? "#2563EB" : "#6B7280",
+                    boxShadow:  stockMode === "simple" ? "0 1px 4px rgba(0,0,0,.12)" : "none",
+                  }}
+                >📦 Simple</button>
+                <button
+                  type="button"
+                  onClick={() => setStockMode("batch")}
+                  style={{
+                    padding:"8px 18px", borderRadius:8, border:"none",
+                    cursor:"pointer", fontSize:13, fontWeight:700, transition:"all .15s",
+                    background: stockMode === "batch" ? "#fff" : "transparent",
+                    color:      stockMode === "batch" ? "#7C3AED" : "#6B7280",
+                    boxShadow:  stockMode === "batch" ? "0 1px 4px rgba(0,0,0,.12)" : "none",
+                  }}
+                >🗂️ Batch / Lot-wise</button>
+              </div>
+              <div style={{ fontSize:11, color:"#94A3B8", marginTop:6 }}>
+                {stockMode === "simple"
+                  ? "Single stock entry — ek expiry date ke saath"
+                  : "Multiple batches — alag-alag lot number, mfg date, expiry date aur qty"}
+              </div>
+            </div>
+
+            {/* ── SIMPLE MODE fields ── */}
+            {stockMode === "simple" && (
+              <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(190px, 1fr))", gap:18, marginBottom:20 }}>
+                <div>
+                  <label style={labelStyle}>Total Stock *</label>
+                  <input
+                    type="number" min="0" placeholder="e.g. 100"
+                    value={form.totalStock}
+                    onChange={e => setForm(p => ({ ...p, totalStock: e.target.value }))}
+                    style={inputStyle}
+                  />
+                </div>
+                <div>
+                  <label style={labelStyle}>
+                    Expiry Date
+                    <span style={{ color:"#94A3B8", fontWeight:400, marginLeft:4 }}>(optional)</span>
+                  </label>
+                  <input
+                    type="date" value={form.expiryDate}
+                    onChange={e => setForm(p => ({ ...p, expiryDate: e.target.value }))}
+                    style={inputStyle}
+                  />
+                  {form.expiryDate && (
+                    <div style={{ marginTop:6 }}>
+                      <ExpiryBadge date={form.expiryDate} />
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* ── BATCH MODE fields ── */}
+            {stockMode === "batch" && (
+              <div style={{ marginBottom:20 }}>
+                <BatchRowsEditor
+                  rows={batchFormRows}
+                  onChange={setBatchFormRows}
+                />
+                {batchFormTotal > 0 && (
+                  <div style={{ marginTop:10, padding:"10px 14px", background:"#EEF2FF", borderRadius:8, fontSize:13, color:"#3730A3" }}>
+                    <b>Total Stock:</b> {batchFormTotal} units &nbsp;·&nbsp;
+                    <b>Batches:</b> {batchFormRows.filter(r => toNum(r.qty) > 0).length}
+                    {batchFormRows.some(r => r.expiryDate) && (
+                      <> &nbsp;·&nbsp; <b>Nearest Expiry:</b> {
+                        fmtDate(
+                          batchFormRows
+                            .filter(r => r.expiryDate && toNum(r.qty) > 0)
+                            .sort((a, b) => new Date(a.expiryDate) - new Date(b.expiryDate))[0]?.expiryDate
+                        ) || "—"
+                      }</>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* ── Edit warning ── */}
+            {editId && (
+              <div style={{ background:"#FFF7ED", border:"1px solid #FED7AA", borderRadius:8, padding:"10px 14px", marginBottom:18, fontSize:12, color:"#92400E" }}>
+                ⚠️ Update karoge toh stock reset ho jayega. Sirf quantity add karne ke liye <b>"+Stock"</b> use karo inventory list mein.
+              </div>
+            )}
+
+            <div style={{ display:"flex", gap:10 }}>
+              <button type="submit" disabled={saving} style={{ ...primaryBtn, opacity: saving ? 0.7 : 1 }}>
+                {saving ? "Saving…" : editId ? "Update Stock" : "Add Stock"}
               </button>
-              <button style={styles.btnDanger} onClick={handleDelete}>
-                Yes, Delete
+              {editId && (
+                <button type="button" onClick={resetForm} style={secondaryBtn}>
+                  Cancel Edit
+                </button>
+              )}
+            </div>
+          </form>
+
+          {/* Quick list */}
+          {!editId && items.length > 0 && (
+            <div style={{ marginTop:30 }}>
+              <div style={{ fontSize:12, fontWeight:700, color:"#6B7280", marginBottom:10, textTransform:"uppercase", letterSpacing:"0.05em" }}>
+                Quick Edit Existing
+              </div>
+              <div style={{ display:"grid", gap:7 }}>
+                {sortItems(items).slice(0, 8).map(x => (
+                  <div key={x._id} style={{
+                    display:"flex", alignItems:"center", justifyContent:"space-between",
+                    padding:"10px 14px", background:"#F8FAFC", borderRadius:8,
+                    border:"1px solid #E5E7EB", flexWrap:"wrap", gap:8,
+                  }}>
+                    <div>
+                      <span style={{ fontWeight:600, fontSize:13 }}>{x.product?.name}</span>
+                      <span style={{ color:"#94A3B8", fontSize:12, marginLeft:8 }}>
+                        {x.availableStock}/{x.totalStock}
+                      </span>
+                      {x.batches?.length > 0 && (
+                        <span style={{ marginLeft:8, fontSize:11, fontWeight:700, color:"#4338CA" }}>
+                          · {x.batches.length} batch{x.batches.length > 1 ? "es" : ""}
+                        </span>
+                      )}
+                      {!x.batches?.length && x.expiryDate && (
+                        <span style={{
+                          marginLeft:8, fontSize:11, fontWeight:700,
+                          color: EXPIRY_COLORS[expiryLevel(x.expiryDate)].text,
+                        }}>
+                          · exp {fmtDate(x.expiryDate)}
+                        </span>
+                      )}
+                    </div>
+                    <div style={{ display:"flex", gap:6, alignItems:"center" }}>
+                      <StatusBadge item={x} />
+                      <button onClick={() => handleEdit(x)} style={{
+                        padding:"4px 12px", background:"#EFF6FF", color:"#2563EB",
+                        border:"1px solid #BFDBFE", borderRadius:6, cursor:"pointer",
+                        fontSize:12, fontWeight:700,
+                      }}>Edit</button>
+                    </div>
+                  </div>
+                ))}
+                {items.length > 8 && (
+                  <div style={{ fontSize:12, color:"#94A3B8", textAlign:"center", padding:6 }}>
+                    +{items.length - 8} more — Stock List tab mein dekho
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ══ TAB: BATCH ══ */}
+      {tab === "batch" && (
+        <div style={{ background:"#fff", borderRadius:12, border:"1px solid #E5E7EB", overflow:"hidden" }}>
+          <div style={{ padding:"16px 20px", borderBottom:"1px solid #F3F4F6", display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:10 }}>
+            <div>
+              <div style={{ fontWeight:800, fontSize:15, color:"#0F172A" }}>⚡ Batch Stock Update</div>
+              <div style={{ fontSize:12, color:"#94A3B8", marginTop:2 }}>
+                Multiple products ek saath update/add karo. Existing = update, naya = create.
+              </div>
+            </div>
+            <button onClick={() => setBatchRows(r => [...r, newRow()])} style={{ ...primaryBtn, padding:"8px 16px", fontSize:12 }}>
+              + Row Add
+            </button>
+          </div>
+
+          <div style={{ overflowX:"auto" }}>
+            <table style={{ width:"100%", borderCollapse:"collapse", minWidth:700 }}>
+              <thead>
+                <tr>
+                  <th style={{ ...th, width:36 }}>#</th>
+                  <th style={{ ...th, minWidth:180 }}>Product *</th>
+                  <th style={{ ...th, minWidth:110 }}>Total Stock *</th>
+                  <th style={{ ...th, minWidth:100 }}>Min Stock</th>
+                  <th style={{ ...th, minWidth:150 }}>Expiry Date</th>
+                  <th style={{ ...th, width:40 }}></th>
+                </tr>
+              </thead>
+              <tbody>
+                {batchRows.map((row, idx) => (
+                  <tr key={row.id}
+                    onMouseEnter={e => e.currentTarget.style.background="#F8FAFC"}
+                    onMouseLeave={e => e.currentTarget.style.background="transparent"}
+                    style={{ transition:"background .1s" }}
+                  >
+                    <td style={{ ...td, color:"#94A3B8", fontFamily:"monospace", verticalAlign:"middle" }}>{idx+1}</td>
+                    <td style={{ ...td, verticalAlign:"middle" }}>
+                      <select
+                        value={row.productId}
+                        onChange={e => updateRow(row.id, "productId", e.target.value)}
+                        style={{ ...inputStyle, marginBottom:0 }}
+                      >
+                        <option value="">Select product…</option>
+                        {products.map(p => (
+                          <option key={p._id} value={p._id}>{p.name}</option>
+                        ))}
+                      </select>
+                    </td>
+                    <td style={{ ...td, verticalAlign:"middle" }}>
+                      <input
+                        type="number" min="0" placeholder="0" value={row.totalStock}
+                        onChange={e => updateRow(row.id, "totalStock", e.target.value)}
+                        style={{ ...inputStyle, marginBottom:0, width:100 }}
+                      />
+                    </td>
+                    <td style={{ ...td, verticalAlign:"middle" }}>
+                      <input
+                        type="number" min="0" placeholder="5" value={row.minStock}
+                        onChange={e => updateRow(row.id, "minStock", e.target.value)}
+                        style={{ ...inputStyle, marginBottom:0, width:90 }}
+                      />
+                    </td>
+                    <td style={{ ...td, verticalAlign:"middle" }}>
+                      <div>
+                        <input
+                          type="date" value={row.expiryDate}
+                          onChange={e => updateRow(row.id, "expiryDate", e.target.value)}
+                          style={{ ...inputStyle, marginBottom:0, width:145 }}
+                        />
+                        {row.expiryDate && (
+                          <div style={{ marginTop:4, fontSize:10, fontWeight:700, color: EXPIRY_COLORS[expiryLevel(row.expiryDate)].text }}>
+                            {(() => { const d = daysLeft(row.expiryDate); return d < 0 ? `Expired ${Math.abs(d)}d ago` : `${d}d left`; })()}
+                          </div>
+                        )}
+                      </div>
+                    </td>
+                    <td style={{ ...td, verticalAlign:"middle" }}>
+                      <button
+                        onClick={() => setBatchRows(r => r.length > 1 ? r.filter(x => x.id !== row.id) : r)}
+                        disabled={batchRows.length === 1}
+                        style={{ background:"none", border:"none", cursor:"pointer", color:"#EF4444", fontSize:16, opacity: batchRows.length===1 ? 0.3 : 1 }}
+                      >✕</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div style={{ padding:"14px 20px", borderTop:"1px solid #F3F4F6", background:"#FAFAFA", display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, flexWrap:"wrap" }}>
+            <span style={{ fontSize:12, color:"#6B7280" }}>
+              <b style={{ color:"#111827" }}>{batchRows.filter(r => r.productId && r.totalStock !== "").length}</b> valid /
+              <b style={{ color:"#111827" }}> {batchRows.length}</b> rows
+            </span>
+            <div style={{ display:"flex", gap:8 }}>
+              <button onClick={() => setBatchRows([newRow()])} style={secondaryBtn}>Reset</button>
+              <button
+                onClick={saveBatch}
+                disabled={saving || !batchRows.some(r => r.productId && r.totalStock !== "")}
+                style={{ ...primaryBtn, opacity: saving ? 0.6 : 1 }}
+              >
+                {saving ? "Saving…" : `Save ${batchRows.filter(r=>r.productId&&r.totalStock!=="").length} Items`}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      <div style={styles.heading}>Inventory Management</div>
-
-      {/* ── STAT CARDS ── */}
-      <div style={styles.statsRow}>
-        {/* ✅ FIX: items.length ab sirf valid items count karta hai */}
-        <StatCard label="Total Products" value={items.length} color="#2563eb" />
-        <StatCard label="Low Stock" value={lowStockCount} color="#f59e0b" />
-        <StatCard label="Out of Stock" value={outOfStockCount} color="#ef4444" />
-      </div>
-
-      {/* ── FORM ── */}
-      <form onSubmit={handleSubmit} style={styles.form}>
-        <div
-          style={{
-            marginTop: 0,
-            marginBottom: 16,
-            color: "#1e293b",
-            fontWeight: 600,
-            fontSize: 15,
-          }}
-        >
-          {editId ? "Update Stock" : "Add Stock"}
-        </div>
-
-        <div style={styles.formGrid}>
-          <div>
-            <label style={styles.label}>Product *</label>
-            <select
-              name="productId"
-              value={form.productId}
-              onChange={handleChange}
-              disabled={!!editId}
-              required
-              style={styles.inp}
-            >
-              <option value="">Select Product</option>
-              {products.map((p) => (
-                <option key={p._id} value={p._id}>
-                  {p.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label style={styles.label}>Total Stock *</label>
-            <input
-              type="number"
-              name="totalStock"
-              placeholder="e.g. 100"
-              value={form.totalStock}
-              onChange={handleChange}
-              min="0"
-              required
-              style={styles.inp}
-            />
-          </div>
-
-          <div>
-            <label style={styles.label}>Min Stock Alert</label>
-            <input
-              type="number"
-              name="minStock"
-              placeholder="e.g. 5"
-              value={form.minStock}
-              onChange={handleChange}
-              min="0"
-              style={styles.inp}
-            />
-          </div>
-        </div>
-
-        <div style={{ display: "flex", gap: 10, marginTop: 4 }}>
-          <button type="submit" style={styles.btn} disabled={submitLoading}>
-            {submitLoading ? "Saving..." : editId ? "Update Stock" : "Add Stock"}
-          </button>
-          {editId && (
-            <button type="button" onClick={resetForm} style={styles.btnSecondary}>
-              Cancel
-            </button>
-          )}
-        </div>
-      </form>
-
-      {/* ── SEARCH ── */}
-      <div style={{ marginBottom: 16 }}>
-        <input
-          type="text"
-          placeholder="🔍 Search by product name..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          style={{ ...styles.inp, maxWidth: 320 }}
-        />
-      </div>
-
-      {/* ── TABLE ── */}
-      {loading ? (
-        <p style={{ color: "#64748b" }}>Loading inventory...</p>
-      ) : filtered.length === 0 ? (
-        <p style={{ color: "#94a3b8" }}>No inventory records found.</p>
-      ) : (
-        <div style={{ overflowX: "auto" }}>
-          <table style={styles.table}>
-            <thead>
-              <tr style={styles.thead}>
-                <th style={styles.th}>#</th>
-                <th style={styles.th}>Product</th>
-                <th style={styles.th}>Total</th>
-                <th style={styles.th}>Available</th>
-                <th style={styles.th}>Min Alert</th>
-                <th style={styles.th}>Status</th>
-                <th style={styles.th}>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((x, i) => (
-                <tr key={x._id} style={styles.tr}>
-                  <td style={styles.td}>{i + 1}</td>
-                  <td style={{ ...styles.td, fontWeight: 500 }}>
-                    {x.product?.name}
-                  </td>
-                  <td style={styles.td}>{x.totalStock}</td>
-                  <td style={styles.td}>{x.availableStock}</td>
-                  <td style={styles.td}>{x.minStock}</td>
-                  <td style={styles.td}>
-                    <StatusBadge item={x} />
-                  </td>
-                  <td style={{ ...styles.td, whiteSpace: "nowrap" }}>
-                    <button
-                      onClick={() => handleEdit(x)}
-                      style={styles.btnEdit}
-                      disabled={deleteLoading === x._id}
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleRestock(x)}
-                      style={styles.btnRestock}
-                      disabled={deleteLoading === x._id}
-                    >
-                      +Stock
-                    </button>
-                    <button
-                      onClick={() => handleDeleteConfirm(x._id)}
-                      style={styles.btnDelete}
-                      disabled={deleteLoading === x._id}
-                    >
-                      {deleteLoading === x._id ? "..." : "Delete"}
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+      <style>{`
+        @keyframes slideIn { from { transform: translateX(20px); opacity:0; } to { transform:translateX(0); opacity:1; } }
+        input:focus, select:focus { border-color: #2563EB !important; box-shadow: 0 0 0 3px rgba(37,99,235,.1); }
+      `}</style>
     </div>
   );
 }
 
-/* ─────────────── SUB COMPONENTS ─────────────── */
-function StatCard({ label, value, color }) {
+/* ─── Small action button ─── */
+function ActionBtn({ color, bg, border, onClick, children }) {
   return (
-    <div style={{ ...styles.statCard, borderLeft: `3px solid ${color}` }}>
-      <div style={{ fontSize: 24, fontWeight: 600, color }}>{value}</div>
-      <div style={{ fontSize: 12, color: "#64748b", marginTop: 3 }}>{label}</div>
-    </div>
+    <button
+      onClick={onClick}
+      style={{
+        padding:"5px 11px", background:bg, color, border:`1px solid ${border}`,
+        borderRadius:6, cursor:"pointer", fontSize:12, fontWeight:700, transition:"opacity .15s",
+      }}
+      onMouseEnter={e => e.currentTarget.style.opacity="0.8"}
+      onMouseLeave={e => e.currentTarget.style.opacity="1"}
+    >{children}</button>
   );
 }
-
-function StatusBadge({ item }) {
-  if (item.outOfStock)
-    return (
-      <span style={{ ...styles.badge, background: "#fee2e2", color: "#dc2626" }}>
-        Out of Stock
-      </span>
-    );
-  if (item.availableStock <= item.minStock)
-    return (
-      <span style={{ ...styles.badge, background: "#fef3c7", color: "#d97706" }}>
-        Low Stock
-      </span>
-    );
-  return (
-    <span style={{ ...styles.badge, background: "#dcfce7", color: "#16a34a" }}>
-      In Stock
-    </span>
-  );
-}
-
-/* ─────────────── STYLES ─────────────── */
-const styles = {
-  page: {
-    fontFamily: "'Segoe UI', sans-serif",
-    padding: "24px",
-    maxWidth: 1000,
-    margin: "0 auto",
-    color: "#1e293b",
-    background: "#ffffff",
-    minHeight: "100vh",
-  },
-  heading: { fontSize: 20, fontWeight: 600, marginBottom: 20, color: "#1e293b" },
-  statsRow: {
-    display: "flex",
-    gap: 12,
-    marginBottom: 20,
-    flexWrap: "wrap",
-  },
-  statCard: {
-    flex: "0 0 auto",
-    width: 170,
-    background: "#ffffff",
-    border: "1px solid #e2e8f0",
-    borderRadius: 10,
-    padding: "14px 18px",
-    boxShadow: "none",
-  },
-  form: {
-    background: "#fff",
-    padding: "20px 24px",
-    borderRadius: 10,
-    border: "1px solid #e2e8f0",
-    marginBottom: 24,
-    boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
-  },
-  formGrid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-    gap: 16,
-  },
-  label: {
-    display: "block",
-    fontSize: 13,
-    fontWeight: 600,
-    marginBottom: 6,
-    color: "#374151",
-  },
-  inp: {
-    width: "100%",
-    padding: "9px 12px",
-    borderRadius: 8,
-    border: "1px solid #d1d5db",
-    fontSize: 14,
-    outline: "none",
-    boxSizing: "border-box",
-    background: "#ffffff",
-  },
-  btn: {
-    padding: "10px 24px",
-    background: "#2563eb",
-    color: "#fff",
-    border: "none",
-    borderRadius: 8,
-    cursor: "pointer",
-    fontWeight: 600,
-    fontSize: 14,
-  },
-  btnSecondary: {
-    padding: "10px 20px",
-    background: "#f1f5f9",
-    border: "1px solid #d1d5db",
-    borderRadius: 8,
-    cursor: "pointer",
-    fontSize: 14,
-  },
-  btnEdit: {
-    padding: "5px 10px",
-    background: "#2563eb",
-    color: "#fff",
-    border: "none",
-    borderRadius: 6,
-    cursor: "pointer",
-    fontSize: 13,
-    marginRight: 6,
-  },
-  btnRestock: {
-    padding: "5px 10px",
-    background: "#059669",
-    color: "#fff",
-    border: "none",
-    borderRadius: 6,
-    cursor: "pointer",
-    fontSize: 13,
-    marginRight: 6,
-  },
-  btnDelete: {
-    padding: "5px 10px",
-    background: "#ef4444",
-    color: "#fff",
-    border: "none",
-    borderRadius: 6,
-    cursor: "pointer",
-    fontSize: 13,
-  },
-  btnDanger: {
-    padding: "9px 20px",
-    background: "#ef4444",
-    color: "#fff",
-    border: "none",
-    borderRadius: 8,
-    cursor: "pointer",
-    fontWeight: 600,
-  },
-  table: {
-    width: "100%",
-    borderCollapse: "collapse",
-    background: "#fff",
-    borderRadius: 10,
-    overflow: "hidden",
-    boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
-  },
-  thead: { background: "#ffffff" },
-  th: {
-    padding: "12px 14px",
-    textAlign: "left",
-    fontSize: 13,
-    fontWeight: 600,
-    color: "#374151",
-    borderBottom: "1px solid #e2e8f0",
-  },
-  tr: { transition: "background 0.15s" },
-  td: {
-    padding: "12px 14px",
-    fontSize: 14,
-    borderBottom: "1px solid #f1f5f9",
-    color: "#374151",
-  },
-  badge: {
-    display: "inline-block",
-    padding: "3px 10px",
-    borderRadius: 20,
-    fontSize: 12,
-    fontWeight: 600,
-  },
-  overlay: {
-    position: "fixed",
-    inset: 0,
-    background: "rgba(0,0,0,0.4)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    zIndex: 999,
-  },
-  modal: {
-    background: "#fff",
-    borderRadius: 12,
-    padding: "28px 32px",
-    maxWidth: 420,
-    width: "90%",
-    boxShadow: "0 8px 30px rgba(0,0,0,0.15)",
-  },
-  toastError: {
-    position: "fixed",
-    top: 20,
-    right: 20,
-    background: "#ef4444",
-    color: "#fff",
-    padding: "12px 20px",
-    borderRadius: 8,
-    zIndex: 1000,
-    fontWeight: 500,
-    boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-  },
-  toastSuccess: {
-    position: "fixed",
-    top: 20,
-    right: 20,
-    background: "#16a34a",
-    color: "#fff",
-    padding: "12px 20px",
-    borderRadius: 8,
-    zIndex: 1000,
-    fontWeight: 500,
-    boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-  },
-};
