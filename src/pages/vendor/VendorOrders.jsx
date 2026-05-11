@@ -4,7 +4,7 @@
 
 // const API_URL = "https://foodhelpervendor.onrender.com/api/vendor/orders";
 
-// /* ── Axios with vendor token ── */
+
 // const axiosAuth = axios.create();
 // axiosAuth.interceptors.request.use((config) => {
 //   const token = localStorage.getItem("vendorToken");
@@ -51,82 +51,64 @@
 //     : str;
 // };
 
-// /* ── Simple CSV Export ── */
-// const buildSimpleCSV = (orders) => {
-//   const headers = [
-//     "Order ID","Short ID","Date","Time","Status","Payment Status","Payment Mode",
-//     "Customer Name","Customer Phone","Delivery Address",
-//     "Product Name","Unit Price","Qty","Item Total","Order Total","Paid","Pending","Note",
-//   ];
-//   const rows = [];
-//   orders.forEach((o) => {
-//     const ps   = getPaymentStatus(o);
-//     const paid = o.paidAmount || 0;
-//     const tot  = o.totalPrice || 0;
-//     const base = [
-//       o._id, shortId(o._id),
-//       fmt(o.createdAt), fmtTime(o.createdAt),
-//       o.status, ps, o.paymentMode || "",
-//       o.user?.name || "Guest", o.user?.phone || "",
-//       o.address
-//         ? [o.address.street, o.address.city, o.address.state, o.address.pincode].filter(Boolean).join(", ")
-//         : "",
-//     ];
-//     const items = o.items || [];
-//     if (!items.length) {
-//       rows.push([...base, "", "", "", "", tot.toFixed(2), paid.toFixed(2), Math.max(0, tot - paid).toFixed(2), o.paymentNote || ""]);
-//     } else {
-//       items.forEach((it) => {
-//         const up = it.unitPrice || 0;
-//         const qty = it.quantity || 1;
-//         rows.push([...base, it.name || "—", up, qty, (up * qty).toFixed(2), tot.toFixed(2), paid.toFixed(2), Math.max(0, tot - paid).toFixed(2), o.paymentNote || ""]);
-//       });
-//     }
-//   });
-//   return [headers.map(escapeCSV).join(","), ...rows.map((r) => r.map(escapeCSV).join(","))].join("\n");
-// };
-
 // /* ── GST Invoice CSV Export ── */
 // const buildGSTInvoiceCSV = (orders) => {
 //   const headers = [
 //     "Vch Ref", "Invoice No", "Voucher Date", "Invoice Date", "Voucher TYPE",
-//     "Customer Code / Alias", "Customer Name", "Customer Mobile No", "Under Group",
-//     "State", "GST No", "Product NO", "Product Description", "Stock Category",
+//     "Customer Code / Alias", "Customer Name", "Customer Mobile No",
+//     "Delivery Name", "Delivery Street", "Delivery City", "Delivery State", "Delivery Pincode", "Delivery Phone",
+//     "Full Delivery Address",
+//     "Under Group", "GST No",
+//     "Product NO", "Product Description", "Stock Category",
 //     "HSN", "STORE", "UOM", "Quantity", "Rate", "Amount", "GST %",
 //     "SGST Amount", "CGST Amount", "IGST Amount", "Round off", "Line Total", "Remarks"
 //   ];
-  
+
 //   const rows = [];
 //   let vchRef = 1;
-  
+
 //   orders.forEach((order) => {
-//     const invoiceNo = `INV-${String(order._id).slice(-8).toUpperCase()}`;
-//     const voucherDate = order.createdAt ? new Date(order.createdAt).toLocaleDateString("en-IN", { day: "2-digit", month: "2-digit", year: "numeric" }) : "";
-//     const invoiceDate = voucherDate;
-//     const customerCode = `CUST-${String(order.user?._id || order._id).slice(-6).toUpperCase()}`;
-//     const customerName = order.user?.name || order.userName || "Guest";
+//     const invoiceNo      = `INV-${String(order._id).slice(-8).toUpperCase()}`;
+//     const voucherDate    = order.createdAt
+//       ? new Date(order.createdAt).toLocaleDateString("en-IN", { day: "2-digit", month: "2-digit", year: "numeric" })
+//       : "";
+//     const invoiceDate    = voucherDate;
+//     const customerCode   = `CUST-${String(order.user?._id || order._id).slice(-6).toUpperCase()}`;
+//     const customerName   = order.user?.name  || order.userName  || "Guest";
 //     const customerMobile = order.user?.phone || order.address?.phone || "";
-//     const underGroup = "Sundry Debtors";
-//     const state = order.address?.state || "Karnataka";
-//     const gstNo = order.user?.gstin || order.customerGstin || "";
-    
+//     const underGroup     = "Sundry Debtors";
+//     const gstNo          = order.user?.gstin || order.customerGstin || "";
+
+//     /* ── Address fields ── */
+//     const addr            = order.address || {};
+//     const deliveryName    = addr.name     || customerName;
+//     const deliveryStreet  = addr.street   || addr.line1   || addr.addressLine1 || addr.address || "";
+//     const deliveryCity    = addr.city     || addr.district || addr.town || "";
+//     const deliveryState   = addr.state    || "Karnataka";
+//     const deliveryPincode = addr.pincode  || addr.zip     || addr.postalCode   || "";
+//     const deliveryPhone   = addr.phone    || addr.mobile  || customerMobile;
+//     const fullAddress     = [deliveryName, deliveryStreet, deliveryCity, deliveryState, deliveryPincode]
+//       .filter(Boolean)
+//       .join(", ");
+
+//     const isInterState = deliveryState.toLowerCase() !== "karnataka";
+
 //     const items = order.items || [];
-    
+
 //     items.forEach((item, itemIndex) => {
-//       const productId = item.product?._id || item.productId || `SKU${String(item._id || itemIndex).slice(-5)}`;
-//       const productName = item.name || "—";
+//       const productId     = item.product?._id || item.productId || `SKU${String(item._id || itemIndex).slice(-5)}`;
+//       const productName   = item.name || "—";
 //       const stockCategory = "Fruits Vegetables Sprouts & Fresh Cut Vegetables/Vegetables";
-//       const hsn = item.hsn || item.product?.hsn || "123456";
-//       const store = "Main Location";
-//       const uom = item.unit || "Nos";
-//       const quantity = item.quantity || 1;
-//       const rate = item.unitPrice || 0;
-//       const amount = rate * quantity;
-//       const gstRate = item.gstRate || item.product?.gstRate || 0;
-      
+//       const hsn           = item.hsn   || item.product?.hsn   || "123456";
+//       const store         = "Main Location";
+//       const uom           = item.unit  || "Nos";
+//       const quantity      = item.quantity  || 1;
+//       const rate          = item.unitPrice || 0;
+//       const amount        = rate * quantity;
+//       const gstRate       = item.gstRate   || item.product?.gstRate || 0;
+
 //       let sgstAmount = 0, cgstAmount = 0, igstAmount = 0;
 //       if (gstRate > 0) {
-//         const isInterState = state !== "Karnataka";
 //         if (isInterState) {
 //           igstAmount = (amount * gstRate) / 100;
 //         } else {
@@ -134,10 +116,11 @@
 //           cgstAmount = (amount * gstRate) / 200;
 //         }
 //       }
-      
-//       const lineTotal = Math.round(amount + sgstAmount + cgstAmount + igstAmount);
-//       const roundOff = lineTotal - (amount + sgstAmount + cgstAmount + igstAmount);
-      
+
+//       const rawTotal  = amount + sgstAmount + cgstAmount + igstAmount;
+//       const lineTotal = Math.round(rawTotal);
+//       const roundOff  = lineTotal - rawTotal;
+
 //       rows.push([
 //         vchRef,
 //         invoiceNo,
@@ -147,8 +130,14 @@
 //         customerCode,
 //         customerName,
 //         customerMobile,
+//         deliveryName,
+//         deliveryStreet,
+//         deliveryCity,
+//         deliveryState,
+//         deliveryPincode,
+//         deliveryPhone,
+//         fullAddress,
 //         underGroup,
-//         state,
 //         gstNo,
 //         productId,
 //         productName,
@@ -168,10 +157,10 @@
 //         order.paymentNote || ""
 //       ]);
 //     });
-    
+
 //     vchRef++;
 //   });
-  
+
 //   return [headers.map(escapeCSV).join(","), ...rows.map((r) => r.map(escapeCSV).join(","))].join("\n");
 // };
 
@@ -185,26 +174,7 @@
 //   URL.revokeObjectURL(url);
 // };
 
-// /* ── CSV Export Buttons ── */
-// const SimpleCSVExportButton = ({ orders, filterStatus }) => {
-//   const [exp, setExp] = useState(false);
-//   const handle = () => {
-//     if (!orders.length) return;
-//     setExp(true);
-//     try {
-//       const today = new Date().toISOString().slice(0, 10);
-//       downloadCSV(buildSimpleCSV(orders), `vendor_orders${filterStatus ? `_${filterStatus}` : ""}_${today}.csv`);
-//     } catch (e) { console.error(e); }
-//     finally { setExp(false); }
-//   };
-//   return (
-//     <button onClick={handle} disabled={exp || !orders.length}
-//       style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "7px 14px", background: orders.length ? "#10b981" : "#94a3b8", color: "#fff", border: "none", borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: orders.length ? "pointer" : "not-allowed", whiteSpace: "nowrap", fontFamily: "inherit" }}>
-//       {exp ? "⏳" : "⬇"} {exp ? "Exporting..." : `Simple CSV (${orders.length})`}
-//     </button>
-//   );
-// };
-
+// /* ── GST CSV Export Button (only this button now) ── */
 // const GSTCSVExportButton = ({ orders, filterStatus }) => {
 //   const [exp, setExp] = useState(false);
 //   const handle = () => {
@@ -826,7 +796,6 @@
 //               <p>{orders.length} total orders across all statuses</p>
 //             </div>
 //             <div className="vo-ph-actions">
-//               <SimpleCSVExportButton orders={sorted} filterStatus={filterStatus} />
 //               <GSTCSVExportButton orders={sorted} filterStatus={filterStatus} />
 //               <button className="btn btn-ghost" onClick={fetchOrders} style={{ fontSize: 12 }}>↺ Refresh</button>
 //             </div>
@@ -938,8 +907,7 @@
 //                           {search ? `No results for "${search}"` : "Orders will appear here once customers place them"}
 //                         </div>
 //                       </div>
-//                     </td>
-//                   </tr>
+//                     </td></tr>
 //                   ) : paginated.map((order) => {
 //                     const sc    = STATUS_CONFIG[order.status] || STATUS_CONFIG.pending;
 //                     const pc    = PAYMENT_CONFIG[order.paymentMode] || { label: order.paymentMode || "—", color: "#64748b", bg: "#f1f5f9" };
@@ -951,26 +919,19 @@
 //                     return (
 //                       <React.Fragment key={order._id}>
 //                         <tr className={isExp ? "exp" : ""}>
-//                           {/* Checkbox */}
 //                           <td>
 //                             <input type="checkbox"
 //                               checked={selectedIds.includes(order._id)}
 //                               onChange={() => setSelectedIds((p) => p.includes(order._id) ? p.filter((x) => x !== order._id) : [...p, order._id])}
 //                             />
 //                           </td>
-
-//                           {/* Order ID */}
 //                           <td>
 //                             <span className="vo-oid" onClick={() => setExpandedRow(isExp ? null : order._id)}>{shortId(order._id)}</span>
 //                           </td>
-
-//                           {/* Date */}
 //                           <td>
 //                             <div style={{ fontSize: 12.5, fontWeight: 600 }}>{fmt(order.createdAt)}</div>
 //                             <div style={{ fontSize: 11, color: "#94a3b8" }}>{fmtTime(order.createdAt)}</div>
 //                           </td>
-
-//                           {/* Customer */}
 //                           <td>
 //                             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
 //                               <div className="vo-avatar">{initials}</div>
@@ -980,8 +941,6 @@
 //                               </div>
 //                             </div>
 //                           </td>
-
-//                           {/* Items */}
 //                           <td>
 //                             <span style={{ fontWeight: 700, fontSize: 13 }}>{(order.items || []).length}</span>
 //                             <span style={{ fontSize: 11, color: "#94a3b8", marginLeft: 4 }}>item{order.items?.length !== 1 ? "s" : ""}</span>
@@ -991,30 +950,20 @@
 //                               </div>
 //                             )}
 //                           </td>
-
-//                           {/* Amount */}
 //                           <td>
 //                             <div style={{ fontWeight: 700, fontSize: 13.5 }}>{fC(order.totalPrice || 0)}</div>
 //                             {(order.paidAmount > 0 && order.paidAmount < (order.totalPrice || 0)) && (
 //                               <div style={{ fontSize: 9, color: "#d97706", marginTop: 1 }}>₹{Math.max(0, (order.totalPrice || 0) - order.paidAmount).toFixed(0)} left</div>
 //                             )}
 //                           </td>
-
-//                           {/* Payment Mode */}
 //                           <td><span className="p-badge" style={{ background: pc.bg, color: pc.color }}>{pc.label}</span></td>
-
-//                           {/* Pay Status */}
 //                           <td><PaymentBadge order={order} /></td>
-
-//                           {/* Status Badge */}
 //                           <td>
 //                             <span className="s-badge" style={{ background: sc.bg, color: sc.color, border: `1px solid ${sc.border}` }}>
 //                               <span className="s-dot" style={{ background: sc.dot }} />
 //                               {sc.label}
 //                             </span>
 //                           </td>
-
-//                           {/* Update Status */}
 //                           <td>
 //                             <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
 //                               <select className="s-sel" value={order.status} disabled={isUpd}
@@ -1024,23 +973,17 @@
 //                               {isUpd && <span style={{ fontSize: 11, color: "#94a3b8" }}>…</span>}
 //                             </div>
 //                           </td>
-
-//                           {/* Payment Update */}
 //                           <td>
 //                             <button className={`btn ${ps === "paid" ? "btn-emerald" : ps === "partial" ? "btn-blue" : "btn-amber"}`}
 //                               onClick={() => setPaymentModalId(order._id)} style={{ fontSize: 11 }}>
 //                               💳 {ps === "paid" ? "Paid" : ps === "partial" ? `₹${(order.paidAmount || 0).toFixed(0)}` : "Pay"}
 //                             </button>
 //                           </td>
-
-//                           {/* Edit Items */}
 //                           <td>
 //                             <button className="btn btn-violet" onClick={() => setEditModalId(order._id)} style={{ fontSize: 11 }}>
 //                               ✏️ Edit
 //                             </button>
 //                           </td>
-
-//                           {/* Expand */}
 //                           <td>
 //                             <button className="vo-exp-btn" onClick={() => setExpandedRow(isExp ? null : order._id)}>
 //                               {isExp ? "▲" : "▼"}
@@ -1095,6 +1038,9 @@
 //                                         ? [order.address.name, order.address.street, order.address.city, order.address.state, order.address.pincode].filter(Boolean).join(", ")
 //                                         : "—"}
 //                                     </div>
+//                                     {order.address?.phone && (
+//                                       <div className="vo-dbox-sub">📞 {order.address.phone}</div>
+//                                     )}
 //                                   </div>
 //                                   <div className="vo-dbox">
 //                                     <div className="vo-dbox-lbl">Payment Info</div>
@@ -1105,8 +1051,7 @@
 //                                 </div>
 //                               </div>
 //                             </div>
-//                           </td>
-//                         </tr>
+//                           </td></tr>
 //                         )}
 //                       </React.Fragment>
 //                     );
@@ -1124,10 +1069,7 @@
 //               </span>
 //               <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
 //                 {sorted.length > 0 && (
-//                   <>
-//                     <SimpleCSVExportButton orders={sorted} filterStatus={filterStatus} />
-//                     <GSTCSVExportButton orders={sorted} filterStatus={filterStatus} />
-//                   </>
+//                   <GSTCSVExportButton orders={sorted} filterStatus={filterStatus} />
 //                 )}
 //                 {totalPages > 1 && (
 //                   <div style={{ display: "flex", gap: 4 }}>
@@ -1224,8 +1166,7 @@ const buildGSTInvoiceCSV = (orders) => {
     "Vch Ref", "Invoice No", "Voucher Date", "Invoice Date", "Voucher TYPE",
     "Customer Code / Alias", "Customer Name", "Customer Mobile No",
     "Delivery Name", "Delivery Street", "Delivery City", "Delivery State", "Delivery Pincode", "Delivery Phone",
-    "Full Delivery Address",
-    "Under Group", "GST No",
+    "Full Delivery Address", "Under Group", "GST No",
     "Product NO", "Product Description", "Stock Category",
     "HSN", "STORE", "UOM", "Quantity", "Rate", "Amount", "GST %",
     "SGST Amount", "CGST Amount", "IGST Amount", "Round off", "Line Total", "Remarks"
@@ -1239,49 +1180,33 @@ const buildGSTInvoiceCSV = (orders) => {
     const voucherDate    = order.createdAt
       ? new Date(order.createdAt).toLocaleDateString("en-IN", { day: "2-digit", month: "2-digit", year: "numeric" })
       : "";
-    const invoiceDate    = voucherDate;
     const customerCode   = `CUST-${String(order.user?._id || order._id).slice(-6).toUpperCase()}`;
     const customerName   = order.user?.name  || order.userName  || "Guest";
     const customerMobile = order.user?.phone || order.address?.phone || "";
-    const underGroup     = "Sundry Debtors";
-    const gstNo          = order.user?.gstin || order.customerGstin || "";
-
-    /* ── Address fields ── */
     const addr            = order.address || {};
     const deliveryName    = addr.name     || customerName;
-    const deliveryStreet  = addr.street   || addr.line1   || addr.addressLine1 || addr.address || "";
+    const deliveryStreet  = addr.street   || addr.line1 || addr.address || "";
     const deliveryCity    = addr.city     || addr.district || addr.town || "";
     const deliveryState   = addr.state    || "Karnataka";
-    const deliveryPincode = addr.pincode  || addr.zip     || addr.postalCode   || "";
-    const deliveryPhone   = addr.phone    || addr.mobile  || customerMobile;
-    const fullAddress     = [deliveryName, deliveryStreet, deliveryCity, deliveryState, deliveryPincode]
-      .filter(Boolean)
-      .join(", ");
+    const deliveryPincode = addr.pincode  || addr.zip || addr.postalCode || "";
+    const deliveryPhone   = addr.phone    || addr.mobile || customerMobile;
+    const fullAddress     = [deliveryName, deliveryStreet, deliveryCity, deliveryState, deliveryPincode].filter(Boolean).join(", ");
+    const isInterState    = deliveryState.toLowerCase() !== "karnataka";
 
-    const isInterState = deliveryState.toLowerCase() !== "karnataka";
-
-    const items = order.items || [];
-
-    items.forEach((item, itemIndex) => {
+    (order.items || []).forEach((item, itemIndex) => {
       const productId     = item.product?._id || item.productId || `SKU${String(item._id || itemIndex).slice(-5)}`;
       const productName   = item.name || "—";
-      const stockCategory = "Fruits Vegetables Sprouts & Fresh Cut Vegetables/Vegetables";
-      const hsn           = item.hsn   || item.product?.hsn   || "123456";
-      const store         = "Main Location";
-      const uom           = item.unit  || "Nos";
-      const quantity      = item.quantity  || 1;
+      const hsn           = item.hsn || item.product?.hsn || "123456";
+      const uom           = item.unit || "Nos";
+      const quantity      = item.quantity || 1;
       const rate          = item.unitPrice || 0;
       const amount        = rate * quantity;
-      const gstRate       = item.gstRate   || item.product?.gstRate || 0;
+      const gstRate       = item.gstRate || item.product?.gstRate || 0;
 
       let sgstAmount = 0, cgstAmount = 0, igstAmount = 0;
       if (gstRate > 0) {
-        if (isInterState) {
-          igstAmount = (amount * gstRate) / 100;
-        } else {
-          sgstAmount = (amount * gstRate) / 200;
-          cgstAmount = (amount * gstRate) / 200;
-        }
+        if (isInterState) igstAmount = (amount * gstRate) / 100;
+        else { sgstAmount = (amount * gstRate) / 200; cgstAmount = (amount * gstRate) / 200; }
       }
 
       const rawTotal  = amount + sgstAmount + cgstAmount + igstAmount;
@@ -1289,42 +1214,17 @@ const buildGSTInvoiceCSV = (orders) => {
       const roundOff  = lineTotal - rawTotal;
 
       rows.push([
-        vchRef,
-        invoiceNo,
-        voucherDate,
-        invoiceDate,
-        "GST Sales",
-        customerCode,
-        customerName,
-        customerMobile,
-        deliveryName,
-        deliveryStreet,
-        deliveryCity,
-        deliveryState,
-        deliveryPincode,
-        deliveryPhone,
-        fullAddress,
-        underGroup,
-        gstNo,
-        productId,
-        productName,
-        stockCategory,
-        hsn,
-        store,
-        uom,
-        quantity.toFixed(2),
-        rate.toFixed(2),
-        amount.toFixed(2),
-        gstRate,
-        sgstAmount.toFixed(2),
-        cgstAmount.toFixed(2),
-        igstAmount.toFixed(2),
-        roundOff.toFixed(2),
-        lineTotal.toFixed(2),
-        order.paymentNote || ""
+        vchRef, invoiceNo, voucherDate, voucherDate, "GST Sales",
+        customerCode, customerName, customerMobile,
+        deliveryName, deliveryStreet, deliveryCity, deliveryState, deliveryPincode, deliveryPhone, fullAddress,
+        "Sundry Debtors", order.user?.gstin || "",
+        productId, productName, "Fruits Vegetables Sprouts & Fresh Cut Vegetables/Vegetables",
+        hsn, "Main Location", uom,
+        quantity.toFixed(2), rate.toFixed(2), amount.toFixed(2), gstRate,
+        sgstAmount.toFixed(2), cgstAmount.toFixed(2), igstAmount.toFixed(2),
+        roundOff.toFixed(2), lineTotal.toFixed(2), order.paymentNote || ""
       ]);
     });
-
     vchRef++;
   });
 
@@ -1341,7 +1241,6 @@ const downloadCSV = (csv, filename) => {
   URL.revokeObjectURL(url);
 };
 
-/* ── GST CSV Export Button (only this button now) ── */
 const GSTCSVExportButton = ({ orders, filterStatus }) => {
   const [exp, setExp] = useState(false);
   const handle = () => {
@@ -1362,8 +1261,69 @@ const GSTCSVExportButton = ({ orders, filterStatus }) => {
 };
 
 /* ══════════════════════════════════════════════════
-   SUB-COMPONENTS
+   BUILD INVOICE ORDER HELPER
+   VendorOrders data → Invoice/Estimate page format
 ══════════════════════════════════════════════════ */
+const getVendorInfo = () => {
+  try {
+    const raw = localStorage.getItem("vendorInfo") || localStorage.getItem("vendor");
+    if (raw) return JSON.parse(raw);
+  } catch {}
+  return null;
+};
+
+const buildInvoiceOrder = (order) => {
+  const vendor = getVendorInfo();
+  const invoiceNo = `INV-${String(order._id).slice(-8).toUpperCase()}`;
+
+  return {
+    _id:        order._id,
+    invoiceNo,
+    createdAt:  order.createdAt,
+    status:     order.status,
+    paymentMode: order.paymentMode || "cash",
+    paymentNote: order.paymentNote || "",
+    totalPrice:  order.totalPrice  || 0,
+    paidAmount:  order.paidAmount  || 0,
+
+    vendor: {
+      name:    vendor?.name    || vendor?.shopName || "Your Store",
+      email:   vendor?.email   || "",
+      phone:   vendor?.phone   || "",
+      gstin:   vendor?.gstin   || vendor?.gstNumber || "",
+      address: [vendor?.address, vendor?.city, vendor?.state].filter(Boolean).join(", ") || "",
+    },
+
+    customer: {
+      name:  order.user?.name  || order.userName || "Guest",
+      phone: order.user?.phone || order.address?.phone || "",
+      email: order.user?.email || "",
+      gstin: order.user?.gstin || "",
+      address: {
+        name:    order.address?.name    || "",
+        street:  order.address?.street  || "",
+        city:    order.address?.city    || "",
+        state:   order.address?.state   || "",
+        pincode: order.address?.pincode || "",
+        phone:   order.address?.phone   || "",
+      },
+    },
+
+    items: (order.items || []).map((it) => ({
+      name:      it.name      || "—",
+      image:     it.image     || "",
+      unitPrice: it.unitPrice || 0,
+      rate:      it.unitPrice || 0,
+      mrp:       it.mrp       || it.unitPrice || 0,
+      quantity:  it.quantity  || 1,
+      unit:      it.unit      || "pcs",
+      packing:   it.packing   || "",
+      hsn:       it.hsn       || it.product?.hsn || "",
+      gstRate:   it.gstRate   || it.product?.gstRate || 0,
+      product:   it.product,
+    })),
+  };
+};
 
 /* ── Payment Summary Cards ── */
 const PaymentSummary = ({ orders }) => {
@@ -1453,10 +1413,10 @@ const PaymentBadge = ({ order }) => {
 /* ── Payment Update Modal ── */
 const PaymentUpdateModal = ({ order, onClose, onUpdated }) => {
   const total = order.totalPrice || 0;
-  const [paid, setPaid]         = useState(order.paidAmount ?? 0);
-  const [note, setNote]         = useState(order.paymentNote || "");
-  const [saving, setSaving]     = useState(false);
-  const [error, setError]       = useState("");
+  const [paid, setPaid]     = useState(order.paidAmount ?? 0);
+  const [note, setNote]     = useState(order.paymentNote || "");
+  const [saving, setSaving] = useState(false);
+  const [error,  setError]  = useState("");
 
   const safePaid = Math.min(Math.max(0, Number(paid) || 0), total);
   const pending  = Math.max(0, total - safePaid);
@@ -1479,15 +1439,9 @@ const PaymentUpdateModal = ({ order, onClose, onUpdated }) => {
   const handleSave = async () => {
     setSaving(true); setError("");
     try {
-      const res = await axiosAuth.put(`${API_URL}/${order._id}/payment`, {
-        paidAmount: safePaid, paymentNote: note,
-      });
-      if (res.data.success) {
-        onUpdated(order._id, res.data.data);
-        onClose();
-      } else {
-        setError(res.data.message || "Update fail hua");
-      }
+      const res = await axiosAuth.put(`${API_URL}/${order._id}/payment`, { paidAmount: safePaid, paymentNote: note });
+      if (res.data.success) { onUpdated(order._id, res.data.data); onClose(); }
+      else setError(res.data.message || "Update fail hua");
     } catch (err) {
       setError(err?.response?.data?.message || "Payment update fail hua");
     } finally { setSaving(false); }
@@ -1498,12 +1452,11 @@ const PaymentUpdateModal = ({ order, onClose, onUpdated }) => {
       <div style={{ background: "#fff", width: "100%", maxWidth: 420, borderRadius: 18, boxShadow: "0 30px 60px rgba(0,0,0,.22)", overflow: "hidden" }}>
         <div style={{ background: "#f8fafc", borderBottom: "1px solid #e2e8f0", padding: "16px 20px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div>
-            <div style={{ fontSize: 13, fontWeight: 800, color: "#0f172a", letterSpacing: .5 }}>Payment Update</div>
+            <div style={{ fontSize: 13, fontWeight: 800, color: "#0f172a" }}>Payment Update</div>
             <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 2 }}>{shortId(order._id)} · {order.user?.name || "—"}</div>
           </div>
           <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 18, color: "#94a3b8", lineHeight: 1, padding: 4 }}>✕</button>
         </div>
-
         <div style={{ padding: 20, display: "flex", flexDirection: "column", gap: 16 }}>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
             <div style={{ background: "#f8fafc", borderRadius: 10, border: "1px solid #e2e8f0", padding: "10px 12px" }}>
@@ -1517,17 +1470,13 @@ const PaymentUpdateModal = ({ order, onClose, onUpdated }) => {
               </span>
             </div>
           </div>
-
           <div>
             <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#374151", marginBottom: 6 }}>Kitna payment mila? (₹)</label>
             <div style={{ position: "relative" }}>
               <span style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "#94a3b8", fontWeight: 700 }}>₹</span>
-              <input
-                type="number" min="0" max={total} step="0.01"
-                value={paid}
+              <input type="number" min="0" max={total} step="0.01" value={paid}
                 onChange={(e) => setPaid(Math.min(Math.max(0, Number(e.target.value) || 0), total))}
-                style={{ width: "100%", paddingLeft: 28, paddingRight: 12, paddingTop: 10, paddingBottom: 10, border: "1px solid #d1d5db", borderRadius: 10, fontSize: 14, fontWeight: 700, color: "#0f172a", outline: "none", fontFamily: "inherit", boxSizing: "border-box" }}
-              />
+                style={{ width: "100%", paddingLeft: 28, paddingRight: 12, paddingTop: 10, paddingBottom: 10, border: "1px solid #d1d5db", borderRadius: 10, fontSize: 14, fontWeight: 700, color: "#0f172a", outline: "none", fontFamily: "inherit", boxSizing: "border-box" }} />
             </div>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 8 }}>
               {quickAmounts.map((q) => (
@@ -1538,7 +1487,6 @@ const PaymentUpdateModal = ({ order, onClose, onUpdated }) => {
               ))}
             </div>
           </div>
-
           <div>
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, fontWeight: 600, marginBottom: 6 }}>
               <span style={{ color: "#059669" }}>Paid: {fC(safePaid)} ({pct}%)</span>
@@ -1548,27 +1496,20 @@ const PaymentUpdateModal = ({ order, onClose, onUpdated }) => {
               <div style={{ height: "100%", width: `${pct}%`, background: pct >= 100 ? "#16a34a" : pct > 0 ? "#2563eb" : "#d1d5db", borderRadius: 999, transition: "width .3s" }} />
             </div>
           </div>
-
           <div>
             <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#374151", marginBottom: 6 }}>
               Payment Note <span style={{ fontWeight: 400, color: "#94a3b8" }}>(optional)</span>
             </label>
-            <textarea
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-              rows={2}
+            <textarea value={note} onChange={(e) => setNote(e.target.value)} rows={2}
               placeholder="e.g. UPI ref, cash collected..."
-              style={{ width: "100%", padding: "8px 12px", border: "1px solid #d1d5db", borderRadius: 10, fontSize: 12, color: "#374151", outline: "none", resize: "none", fontFamily: "inherit", boxSizing: "border-box" }}
-            />
+              style={{ width: "100%", padding: "8px 12px", border: "1px solid #d1d5db", borderRadius: 10, fontSize: 12, color: "#374151", outline: "none", resize: "none", fontFamily: "inherit", boxSizing: "border-box" }} />
           </div>
-
           {error && <div style={{ padding: "8px 12px", background: "#fef2f2", border: "1px solid #fecaca", borderRadius: 8, fontSize: 12, color: "#991b1b" }}>⚠️ {error}</div>}
         </div>
-
         <div style={{ padding: "12px 20px", background: "#f8fafc", borderTop: "1px solid #e2e8f0", display: "flex", gap: 10 }}>
           <button onClick={onClose} style={{ flex: 1, padding: "10px 0", border: "1px solid #d1d5db", borderRadius: 10, background: "#fff", fontSize: 12, fontWeight: 700, color: "#64748b", cursor: "pointer", fontFamily: "inherit" }}>Cancel</button>
           <button onClick={handleSave} disabled={saving}
-            style={{ flex: 2, padding: "10px 0", border: "none", borderRadius: 10, background: saving ? "#059669" : "#16a34a", color: "#fff", fontSize: 12, fontWeight: 700, cursor: saving ? "not-allowed" : "pointer", fontFamily: "inherit", transition: "background .2s" }}>
+            style={{ flex: 2, padding: "10px 0", border: "none", borderRadius: 10, background: saving ? "#059669" : "#16a34a", color: "#fff", fontSize: 12, fontWeight: 700, cursor: saving ? "not-allowed" : "pointer", fontFamily: "inherit" }}>
             {saving ? "Saving..." : `Save — ${fC(safePaid)} (${pct}%)`}
           </button>
         </div>
@@ -1579,9 +1520,7 @@ const PaymentUpdateModal = ({ order, onClose, onUpdated }) => {
 
 /* ── Edit Items Modal ── */
 const EditItemsModal = ({ order, onClose, onUpdated }) => {
-  const [items, setItems] = useState(
-    (order.items || []).map((it) => ({ ...it, _newQty: it.quantity }))
-  );
+  const [items, setItems] = useState((order.items || []).map((it) => ({ ...it, _newQty: it.quantity })));
   const [saving, setSaving] = useState(false);
   const [error,  setError]  = useState("");
 
@@ -1598,17 +1537,10 @@ const EditItemsModal = ({ order, onClose, onUpdated }) => {
   const handleSave = async () => {
     setSaving(true); setError("");
     try {
-      const payload = items.map((it) => ({
-        product:  String(it.product?._id || it.product),
-        quantity: it._newQty,
-      }));
+      const payload = items.map((it) => ({ product: String(it.product?._id || it.product), quantity: it._newQty }));
       const res = await axiosAuth.put(`${API_URL}/${order._id}/items`, { items: payload });
-      if (res.data.success) {
-        onUpdated(order._id, res.data.data);
-        onClose();
-      } else {
-        setError(res.data.message || "Update fail hua");
-      }
+      if (res.data.success) { onUpdated(order._id, res.data.data); onClose(); }
+      else setError(res.data.message || "Update fail hua");
     } catch (err) {
       setError(err?.response?.data?.message || "Items update fail hua");
     } finally { setSaving(false); }
@@ -1624,7 +1556,6 @@ const EditItemsModal = ({ order, onClose, onUpdated }) => {
           </div>
           <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 18, color: "#94a3b8", lineHeight: 1, padding: 4 }}>✕</button>
         </div>
-
         <div style={{ padding: 20, overflowY: "auto", flex: 1 }}>
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
@@ -1637,36 +1568,31 @@ const EditItemsModal = ({ order, onClose, onUpdated }) => {
             <tbody>
               {items.map((it, idx) => (
                 <tr key={idx} style={{ borderBottom: "1px solid #f1f5f9" }}>
-                  <td style={{ padding: "10px 10px", fontSize: 12.5, fontWeight: 600, color: "#0f172a" }}>
+                  <td style={{ padding: "10px", fontSize: 12.5, fontWeight: 600, color: "#0f172a" }}>
                     <div>{it.name || "—"}</div>
                     {it.unit && <div style={{ fontSize: 10, color: "#94a3b8" }}>{it.unit}</div>}
                   </td>
-                  <td style={{ padding: "10px 10px", textAlign: "right", fontSize: 12, color: "#374151" }}>{fC(it.unitPrice || 0)}</td>
-                  <td style={{ padding: "10px 10px", textAlign: "right" }}>
+                  <td style={{ padding: "10px", textAlign: "right", fontSize: 12, color: "#374151" }}>{fC(it.unitPrice || 0)}</td>
+                  <td style={{ padding: "10px", textAlign: "right" }}>
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 6 }}>
                       <button onClick={() => setQty(idx, it._newQty - 1)} style={{ width: 26, height: 26, borderRadius: 6, border: "1px solid #e2e8f0", background: "#f8fafc", cursor: "pointer", fontSize: 14, display: "flex", alignItems: "center", justifyContent: "center" }}>−</button>
-                      <input
-                        type="number" min="1" value={it._newQty}
+                      <input type="number" min="1" value={it._newQty}
                         onChange={(e) => setQty(idx, e.target.value)}
-                        style={{ width: 46, textAlign: "center", padding: "4px 6px", border: "1px solid #d1d5db", borderRadius: 7, fontSize: 13, fontWeight: 700, outline: "none", fontFamily: "inherit" }}
-                      />
+                        style={{ width: 46, textAlign: "center", padding: "4px 6px", border: "1px solid #d1d5db", borderRadius: 7, fontSize: 13, fontWeight: 700, outline: "none", fontFamily: "inherit" }} />
                       <button onClick={() => setQty(idx, it._newQty + 1)} style={{ width: 26, height: 26, borderRadius: 6, border: "1px solid #e2e8f0", background: "#f8fafc", cursor: "pointer", fontSize: 14, display: "flex", alignItems: "center", justifyContent: "center" }}>+</button>
                     </div>
                   </td>
-                  <td style={{ padding: "10px 10px", textAlign: "right", fontSize: 12, fontWeight: 700, color: "#1e40af" }}>{fC((it.unitPrice || 0) * it._newQty)}</td>
+                  <td style={{ padding: "10px", textAlign: "right", fontSize: 12, fontWeight: 700, color: "#1e40af" }}>{fC((it.unitPrice || 0) * it._newQty)}</td>
                 </tr>
               ))}
             </tbody>
           </table>
-
           <div style={{ marginTop: 14, padding: "12px 14px", background: "#f8fafc", borderRadius: 10, border: "1px solid #e2e8f0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <span style={{ fontSize: 13, fontWeight: 700, color: "#374151" }}>New Total</span>
             <span style={{ fontSize: 18, fontWeight: 800, color: "#0f172a" }}>{fC(newTotal)}</span>
           </div>
-
           {error && <div style={{ marginTop: 10, padding: "8px 12px", background: "#fef2f2", border: "1px solid #fecaca", borderRadius: 8, fontSize: 12, color: "#991b1b" }}>⚠️ {error}</div>}
         </div>
-
         <div style={{ padding: "12px 20px", background: "#f8fafc", borderTop: "1px solid #e2e8f0", display: "flex", gap: 10, flexShrink: 0 }}>
           <button onClick={onClose} style={{ flex: 1, padding: "10px 0", border: "1px solid #d1d5db", borderRadius: 10, background: "#fff", fontSize: 12, fontWeight: 700, color: "#64748b", cursor: "pointer", fontFamily: "inherit" }}>Cancel</button>
           <button onClick={handleSave} disabled={saving}
@@ -1699,9 +1625,8 @@ export default function VendorOrders() {
   const [paymentModalId, setPaymentModalId] = useState(null);
   const [editModalId,    setEditModalId]    = useState(null);
 
-  const originalMapRef = useRef({});
-  const navigate       = useNavigate();
-  const ROWS           = 15;
+  const navigate = useNavigate();
+  const ROWS     = 15;
 
   const notify = useCallback((msg, type = "success") => {
     setToast({ msg, type });
@@ -1712,15 +1637,8 @@ export default function VendorOrders() {
     setLoading(true); setError("");
     try {
       const res = await axiosAuth.get(API_URL);
-      if (res.data?.success) {
-        const data = res.data.data || [];
-        const map  = {};
-        data.forEach((o) => { map[o._id] = JSON.parse(JSON.stringify(o)); });
-        originalMapRef.current = map;
-        setOrders(data);
-      } else {
-        setError("Orders load nahi hue");
-      }
+      if (res.data?.success) setOrders(res.data.data || []);
+      else setError("Orders load nahi hue");
     } catch (err) {
       setError(err.response?.data?.message || "Failed to load orders");
     } finally { setLoading(false); }
@@ -1764,6 +1682,18 @@ export default function VendorOrders() {
     notify("Items updated ✓");
   }, [notify]);
 
+  /* ── Navigate to Invoice ── */
+  const openInvoice = useCallback((order) => {
+    const invoiceOrder = buildInvoiceOrder(order);
+    navigate("/vendor/invoice", { state: { order: invoiceOrder } });
+  }, [navigate]);
+
+  /* ── Navigate to Estimate ── */
+  const openEstimate = useCallback((order) => {
+    const invoiceOrder = buildInvoiceOrder(order);
+    navigate("/vendor/estimate", { state: { order: invoiceOrder } });
+  }, [navigate]);
+
   /* ── Filter + Sort ── */
   const filtered = orders.filter((o) => {
     const t = search.toLowerCase();
@@ -1793,7 +1723,6 @@ export default function VendorOrders() {
       ? selectedIds.filter((id) => !paginated.find((o) => o._id === id))
       : [...new Set([...selectedIds, ...paginated.map((o) => o._id)])]);
 
-  /* ── Stats ── */
   const stats = {
     total:     orders.length,
     pending:   orders.filter((o) => o.status === "pending").length,
@@ -1855,15 +1784,15 @@ export default function VendorOrders() {
     .vo-bulk{background:#eef2ff;border:1px solid #c7d2fe;border-radius:9px;
       padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
     .vo-table-wrap{overflow-x:auto}
-    .vo-table{width:100%;border-collapse:collapse;min-width:1300px}
+    .vo-table{width:100%;border-collapse:collapse;min-width:1400px}
     .vo-table thead tr{border-bottom:1px solid var(--border);background:#f8fafc}
-    .vo-table th{padding:9px 11px;text-align:left;font-size:10.5px;font-weight:700;
+    .vo-table th{padding:9px 10px;text-align:left;font-size:10.5px;font-weight:700;
       letter-spacing:.5px;text-transform:uppercase;color:var(--dim);white-space:nowrap}
     .vo-table tbody tr{border-bottom:1px solid var(--border);transition:background .1s}
     .vo-table tbody tr:last-child{border-bottom:none}
     .vo-table tbody tr:hover{background:#fafafa}
     .vo-table tbody tr.exp{background:#f0f7ff}
-    .vo-table td{padding:10px 11px;font-size:13px;vertical-align:middle}
+    .vo-table td{padding:9px 10px;font-size:13px;vertical-align:middle}
     .s-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 9px;border-radius:20px;
       font-size:11px;font-weight:700;white-space:nowrap}
     .s-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
@@ -1895,21 +1824,17 @@ export default function VendorOrders() {
       background:var(--bg);display:flex;align-items:center;justify-content:center;
       cursor:pointer;font-size:12px;transition:all .15s;color:var(--mid)}
     .vo-exp-btn:hover{border-color:var(--blue);color:var(--blue);background:var(--blueFade)}
-    .btn{display:inline-flex;align-items:center;gap:5px;padding:6px 11px;border-radius:7px;
-      font-family:'Plus Jakarta Sans',sans-serif;font-size:11.5px;font-weight:600;
+    .btn{display:inline-flex;align-items:center;gap:5px;padding:6px 10px;border-radius:7px;
+      font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:600;
       border:none;cursor:pointer;transition:all .2s;white-space:nowrap}
-    .btn-blue{background:var(--blue);color:#fff}
-    .btn-blue:hover{background:#1d4ed8}
+    .btn-blue{background:var(--blue);color:#fff}.btn-blue:hover{background:#1d4ed8}
     .btn-ghost{background:transparent;border:1px solid var(--border);color:var(--mid)}
     .btn-ghost:hover{border-color:var(--border2);color:var(--text);background:var(--bg)}
-    .btn-amber{background:#fef3c7;color:#92400e;border:1px solid #fde68a}
-    .btn-amber:hover{background:#fde68a}
-    .btn-emerald{background:#d1fae5;color:#065f46;border:1px solid #a7f3d0}
-    .btn-emerald:hover{background:#a7f3d0}
-    .btn-violet{background:var(--violetFade);color:var(--violet);border:1px solid #ddd6fe}
-    .btn-violet:hover{background:#ede9fe}
-    .btn-dark{background:#0f172a;color:#fff}
-    .btn-dark:hover{background:#1e293b}
+    .btn-amber{background:#fef3c7;color:#92400e;border:1px solid #fde68a}.btn-amber:hover{background:#fde68a}
+    .btn-emerald{background:#d1fae5;color:#065f46;border:1px solid #a7f3d0}.btn-emerald:hover{background:#a7f3d0}
+    .btn-violet{background:var(--violetFade);color:var(--violet);border:1px solid #ddd6fe}.btn-violet:hover{background:#ede9fe}
+    .btn-slate{background:#1e293b;color:#f8fafc;border:1px solid #334155}.btn-slate:hover{background:#0f172a}
+    .btn-orange{background:#fff7ed;color:#c2410c;border:1px solid #fed7aa}.btn-orange:hover{background:#ffedd5}
     .vo-pager{padding:12px 16px;border-top:1px solid var(--border);
       display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
     .vo-pager-info{font-size:12px;color:var(--mid)}
@@ -1936,6 +1861,7 @@ export default function VendorOrders() {
     .vo-error{padding:14px 16px;background:#fef2f2;border:1px solid #fecaca;border-radius:9px;
       color:#991b1b;font-size:13px;margin-bottom:14px;display:flex;align-items:center;gap:8px}
     input[type=checkbox]{width:14px;height:14px;accent-color:var(--blue);cursor:pointer}
+    .inv-actions{display:flex;flex-direction:column;gap:4px}
     @media(max-width:768px){
       .vo-stats{grid-template-columns:1fr 1fr}
       .vo-body{padding:14px 12px 56px}
@@ -1947,7 +1873,6 @@ export default function VendorOrders() {
     <>
       <style>{css}</style>
       <div className="vo">
-        {/* Top bar */}
         <div className="vo-bar">
           <div className="vo-bar-icon">🛍️</div>
           <span style={{ fontSize: 14, fontWeight: 700 }}>Seller Panel</span>
@@ -1956,7 +1881,6 @@ export default function VendorOrders() {
         </div>
 
         <div className="vo-body">
-          {/* Page header */}
           <div className="vo-ph">
             <div>
               <h1>Orders</h1>
@@ -1968,13 +1892,12 @@ export default function VendorOrders() {
             </div>
           </div>
 
-          {/* Stats */}
           <div className="vo-stats">
             {[
               { icon: "📦", bg: "#eff6ff", val: stats.total,     lbl: "Total Orders" },
               { icon: "⏳", bg: "#fffbeb", val: stats.pending,   lbl: "Pending" },
               { icon: "✅", bg: "#f0fdf4", val: stats.delivered, lbl: "Delivered" },
-              { icon: "💰", bg: "#faf5ff", val: fC(stats.revenue).replace("₹", "₹"), lbl: "Revenue" },
+              { icon: "💰", bg: "#faf5ff", val: fC(stats.revenue), lbl: "Revenue" },
             ].map((s, i) => (
               <div className="vo-stat" key={i}>
                 <div className="vo-stat-icon" style={{ background: s.bg }}>{s.icon}</div>
@@ -1986,13 +1909,15 @@ export default function VendorOrders() {
             ))}
           </div>
 
-          {/* Payment Summary */}
           <PaymentSummary orders={orders} />
 
-          {/* Error */}
-          {error && <div className="vo-error">⚠️ {error} <button className="btn btn-ghost" onClick={fetchOrders} style={{ marginLeft: "auto", fontSize: 11 }}>Retry</button></div>}
+          {error && (
+            <div className="vo-error">
+              ⚠️ {error}
+              <button className="btn btn-ghost" onClick={fetchOrders} style={{ marginLeft: "auto", fontSize: 11 }}>Retry</button>
+            </div>
+          )}
 
-          {/* Bulk bar */}
           {selectedIds.length > 0 && (
             <div className="vo-bulk">
               <span style={{ fontSize: 13, fontWeight: 600, color: "#4338ca" }}>{selectedIds.length} selected</span>
@@ -2005,15 +1930,12 @@ export default function VendorOrders() {
             </div>
           )}
 
-          {/* Table Card */}
           <div className="vo-card">
-            {/* Toolbar */}
             <div className="vo-toolbar">
               <div className="vo-tbl-left">
                 <div className="vo-search">
                   <span className="vo-search-ico">⌕</span>
-                  <input placeholder="Search order, customer, item…"
-                    value={search}
+                  <input placeholder="Search order, customer, item…" value={search}
                     onChange={(e) => { setSearch(e.target.value); setPage(1); }} />
                 </div>
                 <select className="vo-sel" value={filterStatus} onChange={(e) => { setFilterStatus(e.target.value); setPage(1); }}>
@@ -2036,7 +1958,6 @@ export default function VendorOrders() {
               </div>
             </div>
 
-            {/* Table */}
             <div className="vo-table-wrap">
               <table className="vo-table">
                 <thead>
@@ -2051,8 +1972,9 @@ export default function VendorOrders() {
                     <th>Pay Status</th>
                     <th>Status</th>
                     <th>Update Status</th>
-                    <th>Payment</th>
-                    <th>Edit Items</th>
+                    <th>💳 Payment</th>
+                    <th>✏️ Items</th>
+                    <th>📄 Invoice</th>
                     <th style={{ width: 36 }}></th>
                   </tr>
                 </thead>
@@ -2060,13 +1982,13 @@ export default function VendorOrders() {
                   {loading ? (
                     [1,2,3,4,5].map((i) => (
                       <tr className="sh-row" key={i}>
-                        {Array(13).fill(0).map((_, j) => (
-                          <td key={j}><div className="shimmer" style={{ width: [34,90,90,130,70,80,70,90,100,130,80,80,36][j] }} /></td>
+                        {Array(14).fill(0).map((_, j) => (
+                          <td key={j}><div className="shimmer" style={{ width: [34,90,90,130,70,80,70,90,100,130,80,80,100,36][j] }} /></td>
                         ))}
                       </tr>
                     ))
                   ) : paginated.length === 0 ? (
-                    <tr><td colSpan={13}>
+                    <tr><td colSpan={14}>
                       <div className="vo-empty">
                         <div style={{ fontSize: 36, opacity: .2, marginBottom: 10 }}>🛍️</div>
                         <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 4 }}>{search ? "No orders found" : "No orders yet"}</div>
@@ -2089,8 +2011,7 @@ export default function VendorOrders() {
                           <td>
                             <input type="checkbox"
                               checked={selectedIds.includes(order._id)}
-                              onChange={() => setSelectedIds((p) => p.includes(order._id) ? p.filter((x) => x !== order._id) : [...p, order._id])}
-                            />
+                              onChange={() => setSelectedIds((p) => p.includes(order._id) ? p.filter((x) => x !== order._id) : [...p, order._id])} />
                           </td>
                           <td>
                             <span className="vo-oid" onClick={() => setExpandedRow(isExp ? null : order._id)}>{shortId(order._id)}</span>
@@ -2112,7 +2033,7 @@ export default function VendorOrders() {
                             <span style={{ fontWeight: 700, fontSize: 13 }}>{(order.items || []).length}</span>
                             <span style={{ fontSize: 11, color: "#94a3b8", marginLeft: 4 }}>item{order.items?.length !== 1 ? "s" : ""}</span>
                             {order.items?.[0]?.name && (
-                              <div style={{ fontSize: 10.5, color: "#475569", marginTop: 2, maxWidth: 130, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                              <div style={{ fontSize: 10.5, color: "#475569", marginTop: 2, maxWidth: 120, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                                 {order.items[0].name}{order.items.length > 1 ? ` +${order.items.length - 1}` : ""}
                               </div>
                             )}
@@ -2142,14 +2063,25 @@ export default function VendorOrders() {
                           </td>
                           <td>
                             <button className={`btn ${ps === "paid" ? "btn-emerald" : ps === "partial" ? "btn-blue" : "btn-amber"}`}
-                              onClick={() => setPaymentModalId(order._id)} style={{ fontSize: 11 }}>
+                              onClick={() => setPaymentModalId(order._id)}>
                               💳 {ps === "paid" ? "Paid" : ps === "partial" ? `₹${(order.paidAmount || 0).toFixed(0)}` : "Pay"}
                             </button>
                           </td>
                           <td>
-                            <button className="btn btn-violet" onClick={() => setEditModalId(order._id)} style={{ fontSize: 11 }}>
+                            <button className="btn btn-violet" onClick={() => setEditModalId(order._id)}>
                               ✏️ Edit
                             </button>
+                          </td>
+                          {/* ── Invoice / Estimate Buttons ── */}
+                          <td>
+                            <div className="inv-actions">
+                              <button className="btn btn-slate" onClick={() => openInvoice(order)}>
+                                🧾 Invoice
+                              </button>
+                              <button className="btn btn-orange" onClick={() => openEstimate(order)}>
+                                📋 Estimate
+                              </button>
+                            </div>
                           </td>
                           <td>
                             <button className="vo-exp-btn" onClick={() => setExpandedRow(isExp ? null : order._id)}>
@@ -2158,9 +2090,8 @@ export default function VendorOrders() {
                           </td>
                         </tr>
 
-                        {/* Expanded Row */}
                         {isExp && (
-                          <tr><td colSpan={13} style={{ padding: 0 }}>
+                          <tr><td colSpan={14} style={{ padding: 0 }}>
                             <div className="vo-detail">
                               <div className="vo-detail-inner">
                                 <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: .5, textTransform: "uppercase", color: "#94a3b8", marginBottom: 10 }}>Order Items</div>
@@ -2190,7 +2121,6 @@ export default function VendorOrders() {
                                     </tr>
                                   </tbody>
                                 </table>
-
                                 <div className="vo-detail-grid">
                                   <div className="vo-dbox">
                                     <div className="vo-dbox-lbl">Customer</div>
@@ -2205,9 +2135,7 @@ export default function VendorOrders() {
                                         ? [order.address.name, order.address.street, order.address.city, order.address.state, order.address.pincode].filter(Boolean).join(", ")
                                         : "—"}
                                     </div>
-                                    {order.address?.phone && (
-                                      <div className="vo-dbox-sub">📞 {order.address.phone}</div>
-                                    )}
+                                    {order.address?.phone && <div className="vo-dbox-sub">📞 {order.address.phone}</div>}
                                   </div>
                                   <div className="vo-dbox">
                                     <div className="vo-dbox-lbl">Payment Info</div>
@@ -2227,7 +2155,6 @@ export default function VendorOrders() {
               </table>
             </div>
 
-            {/* Pagination */}
             <div className="vo-pager">
               <span className="vo-pager-info">
                 {totalPages > 1
@@ -2235,9 +2162,7 @@ export default function VendorOrders() {
                   : `${sorted.length} order${sorted.length !== 1 ? "s" : ""}`}
               </span>
               <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                {sorted.length > 0 && (
-                  <GSTCSVExportButton orders={sorted} filterStatus={filterStatus} />
-                )}
+                {sorted.length > 0 && <GSTCSVExportButton orders={sorted} filterStatus={filterStatus} />}
                 {totalPages > 1 && (
                   <div style={{ display: "flex", gap: 4 }}>
                     <button className="pg-btn" disabled={page===1} onClick={() => setPage(1)}>«</button>
@@ -2256,7 +2181,6 @@ export default function VendorOrders() {
         </div>
       </div>
 
-      {/* Modals */}
       {paymentModalOrder && (
         <PaymentUpdateModal order={paymentModalOrder} onClose={() => setPaymentModalId(null)} onUpdated={handlePaymentUpdated} />
       )}
@@ -2264,7 +2188,6 @@ export default function VendorOrders() {
         <EditItemsModal order={editModalOrder} onClose={() => setEditModalId(null)} onUpdated={handleItemsUpdated} />
       )}
 
-      {/* Toast */}
       {toast && (
         <div className={`vo-toast ${toast.type}`}>
           <div className="toast-dot" />{toast.msg}

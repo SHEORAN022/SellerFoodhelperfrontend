@@ -18,11 +18,10 @@
 // const daysLeft = (d) =>
 //   d ? Math.ceil((new Date(d) - Date.now()) / 86400000) : null;
 
-// /* ─── Expiry urgency helper ─── */
 // const expiryLevel = (d) => {
 //   const days = daysLeft(d);
 //   if (days === null) return "none";
-//   if (days < 0)  return "expired";
+//   if (days < 0)   return "expired";
 //   if (days <= 7)  return "critical";
 //   if (days <= 30) return "warning";
 //   return "ok";
@@ -188,6 +187,161 @@
 // const td = { padding:"11px 14px", fontSize:13, borderBottom:"1px solid #F3F4F6", color:"#374151" };
 
 // /* ══════════════════════════════════════
+//    BATCH ROWS EDITOR — used inside Add/Edit form
+// ══════════════════════════════════════ */
+// const newBatchRow = () => ({
+//   id: Date.now() + Math.random(),
+//   batchNo: "",
+//   mfgDate: "",
+//   expiryDate: "",
+//   qty: "",
+// });
+
+// function BatchRowsEditor({ rows, onChange }) {
+//   const addRow = () => onChange([...rows, newBatchRow()]);
+//   const removeRow = (id) => onChange(rows.length > 1 ? rows.filter(r => r.id !== id) : rows);
+//   const updateRow = (id, key, val) =>
+//     onChange(rows.map(r => r.id === id ? { ...r, [key]: val } : r));
+
+//   const totalQty = rows.reduce((s, r) => s + toNum(r.qty), 0);
+
+//   return (
+//     <div style={{
+//       border:"1px solid #C7D2FE", borderRadius:10,
+//       overflow:"hidden", marginTop:4,
+//     }}>
+//       {/* Header */}
+//       <div style={{
+//         background:"#EEF2FF", padding:"10px 14px",
+//         display:"flex", justifyContent:"space-between", alignItems:"center",
+//         borderBottom:"1px solid #C7D2FE",
+//       }}>
+//         <div style={{ fontSize:12, fontWeight:700, color:"#4338CA" }}>
+//           📦 Batch Details
+//           {totalQty > 0 && (
+//             <span style={{
+//               marginLeft:10, background:"#4338CA", color:"#fff",
+//               padding:"2px 8px", borderRadius:20, fontSize:11,
+//             }}>Total: {totalQty} units</span>
+//           )}
+//         </div>
+//         <button
+//           type="button"
+//           onClick={addRow}
+//           style={{
+//             padding:"5px 12px", background:"#4338CA", color:"#fff",
+//             border:"none", borderRadius:6, cursor:"pointer",
+//             fontSize:12, fontWeight:700,
+//           }}
+//         >+ Add Batch</button>
+//       </div>
+
+//       {/* Rows */}
+//       <div style={{ overflowX:"auto" }}>
+//         <table style={{ width:"100%", borderCollapse:"collapse", minWidth:560 }}>
+//           <thead>
+//             <tr style={{ background:"#F5F3FF" }}>
+//               <th style={{ ...th, background:"#F5F3FF", color:"#6D28D9", fontSize:10 }}>#</th>
+//               <th style={{ ...th, background:"#F5F3FF", color:"#6D28D9", fontSize:10 }}>Batch No.</th>
+//               <th style={{ ...th, background:"#F5F3FF", color:"#6D28D9", fontSize:10 }}>Mfg. Date</th>
+//               <th style={{ ...th, background:"#F5F3FF", color:"#6D28D9", fontSize:10 }}>Expiry Date</th>
+//               <th style={{ ...th, background:"#F5F3FF", color:"#6D28D9", fontSize:10 }}>Qty *</th>
+//               <th style={{ ...th, background:"#F5F3FF", width:36 }}></th>
+//             </tr>
+//           </thead>
+//           <tbody>
+//             {rows.map((row, idx) => {
+//               const level = expiryLevel(row.expiryDate);
+//               const eColor = EXPIRY_COLORS[level];
+//               return (
+//                 <tr key={row.id}
+//                   onMouseEnter={e => e.currentTarget.style.background="#FAFAFA"}
+//                   onMouseLeave={e => e.currentTarget.style.background="transparent"}
+//                 >
+//                   <td style={{ ...td, color:"#94A3B8", fontSize:12, width:28, textAlign:"center" }}>{idx + 1}</td>
+//                   <td style={td}>
+//                     <input
+//                       type="text"
+//                       placeholder="LOT-001"
+//                       value={row.batchNo}
+//                       onChange={e => updateRow(row.id, "batchNo", e.target.value)}
+//                       style={{ ...inputStyle, width:100, marginBottom:0 }}
+//                     />
+//                   </td>
+//                   <td style={td}>
+//                     <input
+//                       type="date"
+//                       value={row.mfgDate}
+//                       onChange={e => updateRow(row.id, "mfgDate", e.target.value)}
+//                       style={{ ...inputStyle, width:138, marginBottom:0 }}
+//                     />
+//                   </td>
+//                   <td style={td}>
+//                     <div>
+//                       <input
+//                         type="date"
+//                         value={row.expiryDate}
+//                         onChange={e => updateRow(row.id, "expiryDate", e.target.value)}
+//                         style={{
+//                           ...inputStyle, width:138, marginBottom:0,
+//                           borderColor: row.expiryDate ? eColor.border : "#D1D5DB",
+//                         }}
+//                       />
+//                       {row.expiryDate && (
+//                         <div style={{
+//                           marginTop:3, fontSize:10, fontWeight:700,
+//                           color: eColor.text,
+//                         }}>
+//                           {(() => {
+//                             const d = daysLeft(row.expiryDate);
+//                             return d < 0 ? `Expired ${Math.abs(d)}d ago` : `${d}d left`;
+//                           })()}
+//                         </div>
+//                       )}
+//                     </div>
+//                   </td>
+//                   <td style={td}>
+//                     <input
+//                       type="number"
+//                       min="1"
+//                       placeholder="0"
+//                       value={row.qty}
+//                       onChange={e => updateRow(row.id, "qty", e.target.value)}
+//                       style={{ ...inputStyle, width:80, marginBottom:0, fontWeight:700 }}
+//                     />
+//                   </td>
+//                   <td style={{ ...td, textAlign:"center" }}>
+//                     <button
+//                       type="button"
+//                       onClick={() => removeRow(row.id)}
+//                       disabled={rows.length === 1}
+//                       style={{
+//                         background:"none", border:"none", cursor:"pointer",
+//                         color:"#EF4444", fontSize:16,
+//                         opacity: rows.length === 1 ? 0.3 : 1,
+//                       }}
+//                     >✕</button>
+//                   </td>
+//                 </tr>
+//               );
+//             })}
+//           </tbody>
+//         </table>
+//       </div>
+
+//       {/* Footer hint */}
+//       <div style={{
+//         padding:"8px 14px", background:"#F5F3FF",
+//         borderTop:"1px solid #C7D2FE",
+//         fontSize:11, color:"#7C3AED",
+//       }}>
+//         💡 Batch No. optional hai. Qty required hai. Nearest expiry automatically set hogi.
+//       </div>
+//     </div>
+//   );
+// }
+
+// /* ══════════════════════════════════════
 //    MAIN COMPONENT
 // ══════════════════════════════════════ */
 // export default function VendorInventory() {
@@ -216,9 +370,12 @@
 //   const emptyForm = { productId:"", totalStock:"", minStock:"5", expiryDate:"" };
 //   const [form, setForm]         = useState(emptyForm);
 //   const [editId, setEditId]     = useState(null);
-//   const [showForm, setShowForm] = useState(false);
 
-//   /* batch */
+//   /* ── Stock mode: "simple" | "batch" ── */
+//   const [stockMode, setStockMode] = useState("simple");
+//   const [batchFormRows, setBatchFormRows] = useState([newBatchRow()]);
+
+//   /* batch tab */
 //   const newRow = () => ({ id: Date.now()+Math.random(), productId:"", totalStock:"", minStock:"5", expiryDate:"" });
 //   const [batchRows, setBatchRows] = useState([newRow()]);
 
@@ -244,7 +401,7 @@
 
 //   useEffect(() => { fetchInventory(); fetchProducts(); }, []);
 
-//   /* ── Frontend smart sort (mirrors backend logic) ── */
+//   /* ── Smart sort ── */
 //   const sortItems = useCallback((list) => {
 //     const score = (x) => {
 //       let s = 0;
@@ -270,7 +427,7 @@
 //     });
 //   }, []);
 
-//   /* ── Filtered + sorted ── */
+//   /* ── Filtered ── */
 //   const filtered = useMemo(() => {
 //     const q = search.toLowerCase();
 //     const base = items.filter(x => {
@@ -296,18 +453,50 @@
 //     expiring: items.filter(x => { const d = daysLeft(x.expiryDate); return d !== null && d <= 30 && !x.outOfStock; }).length,
 //   }), [items]);
 
-//   /* ── CRUD ── */
+//   /* ── Reset form helper ── */
+//   const resetForm = () => {
+//     setForm(emptyForm);
+//     setEditId(null);
+//     setStockMode("simple");
+//     setBatchFormRows([newBatchRow()]);
+//   };
+
+//   /* ── Submit ── */
 //   const handleSubmit = async (e) => {
 //     e.preventDefault();
 //     if (!editId && !form.productId) return showToast("Product select karo", "error");
-//     if (form.totalStock === "")      return showToast("Total stock required", "error");
+
+//     if (stockMode === "batch") {
+//       const validBatches = batchFormRows.filter(r => r.qty && toNum(r.qty) > 0);
+//       if (!validBatches.length) return showToast("Kam se kam ek batch mein qty daalo", "error");
+//     } else {
+//       if (form.totalStock === "") return showToast("Total stock required", "error");
+//     }
+
 //     setSaving(true);
 //     try {
-//       const body = {
-//         totalStock:  toNum(form.totalStock),
-//         minStock:    toNum(form.minStock, 5),
-//         expiryDate:  form.expiryDate || null,
-//       };
+//       let body;
+//       if (stockMode === "batch") {
+//         const validBatches = batchFormRows
+//           .filter(r => r.qty && toNum(r.qty) > 0)
+//           .map(r => ({
+//             batchNo:    r.batchNo.trim(),
+//             mfgDate:    r.mfgDate    || null,
+//             expiryDate: r.expiryDate || null,
+//             qty:        toNum(r.qty),
+//           }));
+//         body = {
+//           minStock: toNum(form.minStock, 5),
+//           batches:  validBatches,
+//         };
+//       } else {
+//         body = {
+//           totalStock: toNum(form.totalStock),
+//           minStock:   toNum(form.minStock, 5),
+//           expiryDate: form.expiryDate || null,
+//         };
+//       }
+
 //       if (editId) {
 //         await axiosAuth.put(`${INVENTORY_API}/${editId}`, body);
 //         showToast("Inventory updated!");
@@ -315,7 +504,7 @@
 //         await axiosAuth.post(INVENTORY_API, { ...body, productId: form.productId });
 //         showToast("Inventory added!");
 //       }
-//       setForm(emptyForm); setEditId(null); setShowForm(false);
+//       resetForm();
 //       fetchInventory();
 //     } catch (e) {
 //       showToast(e?.response?.data?.message || "Save failed", "error");
@@ -323,6 +512,7 @@
 //   };
 
 //   const handleEdit = (inv) => {
+//     const hasBatches = inv.batches && inv.batches.length > 0;
 //     setForm({
 //       productId:  inv.product?._id || "",
 //       totalStock: String(inv.totalStock),
@@ -330,7 +520,19 @@
 //       expiryDate: inv.expiryDate ? inv.expiryDate.slice(0, 10) : "",
 //     });
 //     setEditId(inv._id);
-//     setShowForm(true);
+//     if (hasBatches) {
+//       setStockMode("batch");
+//       setBatchFormRows(inv.batches.map(b => ({
+//         id:        b._id || (Date.now() + Math.random()),
+//         batchNo:   b.batchNo   || "",
+//         mfgDate:   b.mfgDate   ? b.mfgDate.slice(0,10)   : "",
+//         expiryDate:b.expiryDate ? b.expiryDate.slice(0,10) : "",
+//         qty:       String(b.qty || ""),
+//       })));
+//     } else {
+//       setStockMode("simple");
+//       setBatchFormRows([newBatchRow()]);
+//     }
 //     setTab("add");
 //     window.scrollTo({ top:0, behavior:"smooth" });
 //   };
@@ -343,7 +545,7 @@
 //         try {
 //           await axiosAuth.delete(`${INVENTORY_API}/${inv._id}`);
 //           setItems(prev => prev.filter(x => x._id !== inv._id));
-//           if (editId === inv._id) { setForm(emptyForm); setEditId(null); setShowForm(false); }
+//           if (editId === inv._id) resetForm();
 //           showToast("Deleted!");
 //         } catch (e) { showToast(e?.response?.data?.message || "Delete failed", "error"); }
 //       }
@@ -358,7 +560,7 @@
 //     } catch (e) { showToast(e?.response?.data?.message || "Restock failed", "error"); }
 //   };
 
-//   /* ── Batch save ── */
+//   /* ── Batch tab save ── */
 //   const saveBatch = async () => {
 //     const valid = batchRows.filter(r => r.productId && r.totalStock !== "");
 //     if (!valid.length) return showToast("Kam se kam ek valid row fill karo", "error");
@@ -381,6 +583,9 @@
 //   };
 
 //   const updateRow = (id, k, v) => setBatchRows(r => r.map(row => row.id === id ? { ...row, [k]: v } : row));
+
+//   /* ── Batch form total qty ── */
+//   const batchFormTotal = batchFormRows.reduce((s, r) => s + toNum(r.qty), 0);
 
 //   /* ── Render ── */
 //   const TABS = [
@@ -415,7 +620,7 @@
 //         <StatCard label="Expiring Soon"  value={stats.expiring} color="#9333EA" sub="within 30 days" />
 //       </div>
 
-//       {/* Alert Banner — expiring/out of stock critical items */}
+//       {/* Alert Banner */}
 //       {(stats.out > 0 || stats.expiring > 0) && (
 //         <div style={{
 //           background:"#FFF7ED", border:"1px solid #FED7AA",
@@ -473,7 +678,7 @@
 //                 }}>{label}</button>
 //               ))}
 //             </div>
-//             <button onClick={() => { setTab("add"); setEditId(null); setForm(emptyForm); setShowForm(true); }}
+//             <button onClick={() => { resetForm(); setTab("add"); }}
 //               style={{ ...primaryBtn, marginLeft:"auto" }}>
 //               + Add Stock
 //             </button>
@@ -505,6 +710,7 @@
 //                       <th style={{ ...th, textAlign:"center" }}>Available</th>
 //                       <th style={{ ...th, textAlign:"center" }}>Min Alert</th>
 //                       <th style={th}>Expiry Date</th>
+//                       <th style={{ ...th, textAlign:"center" }}>Batches</th>
 //                       <th style={{ ...th, textAlign:"center" }}>Status</th>
 //                       <th style={{ ...th, textAlign:"center" }}>Actions</th>
 //                     </tr>
@@ -517,6 +723,7 @@
 //                         level === "expired"  ? "#FFF5F5" :
 //                         level === "critical" ? "#FFFBF0" :
 //                         x.availableStock <= x.minStock ? "#FFFDF0" : "transparent";
+//                       const batchCount = x.batches?.length || 0;
 //                       return (
 //                         <tr key={x._id}
 //                           style={{ background: rowBg, transition:"background .1s" }}
@@ -541,6 +748,20 @@
 //                           <td style={{ ...td, textAlign:"center", color:"#94A3B8", verticalAlign:"middle" }}>{x.minStock}</td>
 //                           <td style={{ ...td, verticalAlign:"middle" }}>
 //                             <ExpiryBadge date={x.expiryDate} />
+//                           </td>
+//                           <td style={{ ...td, textAlign:"center", verticalAlign:"middle" }}>
+//                             {batchCount > 0 ? (
+//                               <span style={{
+//                                 display:"inline-block", padding:"3px 8px", borderRadius:20,
+//                                 fontSize:11, fontWeight:700,
+//                                 background:"#EEF2FF", color:"#4338CA",
+//                                 border:"1px solid #C7D2FE",
+//                               }}>
+//                                 {batchCount} batch{batchCount > 1 ? "es" : ""}
+//                               </span>
+//                             ) : (
+//                               <span style={{ color:"#CBD5E1", fontSize:12 }}>—</span>
+//                             )}
 //                           </td>
 //                           <td style={{ ...td, textAlign:"center", verticalAlign:"middle" }}>
 //                             <StatusBadge item={x} />
@@ -569,7 +790,9 @@
 //           <div style={{ fontSize:15, fontWeight:800, color:"#0F172A", marginBottom:20 }}>
 //             {editId ? "✏️ Update Stock" : "➕ Add New Stock"}
 //           </div>
+
 //           <form onSubmit={handleSubmit}>
+//             {/* ── Top fields: Product + Min Stock ── */}
 //             <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(190px, 1fr))", gap:18, marginBottom:20 }}>
 //               {/* Product */}
 //               <div>
@@ -592,17 +815,6 @@
 //                 )}
 //               </div>
 
-//               {/* Total Stock */}
-//               <div>
-//                 <label style={labelStyle}>Total Stock *</label>
-//                 <input
-//                   type="number" min="0" placeholder="e.g. 100"
-//                   value={form.totalStock}
-//                   onChange={e => setForm(p => ({ ...p, totalStock: e.target.value }))}
-//                   required style={inputStyle}
-//                 />
-//               </div>
-
 //               {/* Min Stock */}
 //               <div>
 //                 <label style={labelStyle}>Min Stock Alert</label>
@@ -613,26 +825,105 @@
 //                   style={inputStyle}
 //                 />
 //               </div>
+//             </div>
 
-//               {/* Expiry Date ✅ NEW */}
-//               <div>
-//                 <label style={labelStyle}>Expiry Date <span style={{ color:"#94A3B8", fontWeight:400 }}>(optional)</span></label>
-//                 <input
-//                   type="date" value={form.expiryDate}
-//                   onChange={e => setForm(p => ({ ...p, expiryDate: e.target.value }))}
-//                   style={inputStyle}
-//                 />
-//                 {form.expiryDate && (
-//                   <div style={{ marginTop:6 }}>
-//                     <ExpiryBadge date={form.expiryDate} />
-//                   </div>
-//                 )}
+//             {/* ── Stock Mode Toggle ── */}
+//             <div style={{ marginBottom:16 }}>
+//               <label style={{ ...labelStyle, marginBottom:10 }}>Stock Entry Mode</label>
+//               <div style={{
+//                 display:"inline-flex", background:"#F1F5F9",
+//                 borderRadius:10, padding:4, gap:4,
+//               }}>
+//                 <button
+//                   type="button"
+//                   onClick={() => setStockMode("simple")}
+//                   style={{
+//                     padding:"8px 18px", borderRadius:8, border:"none",
+//                     cursor:"pointer", fontSize:13, fontWeight:700, transition:"all .15s",
+//                     background: stockMode === "simple" ? "#fff" : "transparent",
+//                     color:      stockMode === "simple" ? "#2563EB" : "#6B7280",
+//                     boxShadow:  stockMode === "simple" ? "0 1px 4px rgba(0,0,0,.12)" : "none",
+//                   }}
+//                 >📦 Simple</button>
+//                 <button
+//                   type="button"
+//                   onClick={() => setStockMode("batch")}
+//                   style={{
+//                     padding:"8px 18px", borderRadius:8, border:"none",
+//                     cursor:"pointer", fontSize:13, fontWeight:700, transition:"all .15s",
+//                     background: stockMode === "batch" ? "#fff" : "transparent",
+//                     color:      stockMode === "batch" ? "#7C3AED" : "#6B7280",
+//                     boxShadow:  stockMode === "batch" ? "0 1px 4px rgba(0,0,0,.12)" : "none",
+//                   }}
+//                 >🗂️ Batch / Lot-wise</button>
+//               </div>
+//               <div style={{ fontSize:11, color:"#94A3B8", marginTop:6 }}>
+//                 {stockMode === "simple"
+//                   ? "Single stock entry — ek expiry date ke saath"
+//                   : "Multiple batches — alag-alag lot number, mfg date, expiry date aur qty"}
 //               </div>
 //             </div>
 
+//             {/* ── SIMPLE MODE fields ── */}
+//             {stockMode === "simple" && (
+//               <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(190px, 1fr))", gap:18, marginBottom:20 }}>
+//                 <div>
+//                   <label style={labelStyle}>Total Stock *</label>
+//                   <input
+//                     type="number" min="0" placeholder="e.g. 100"
+//                     value={form.totalStock}
+//                     onChange={e => setForm(p => ({ ...p, totalStock: e.target.value }))}
+//                     style={inputStyle}
+//                   />
+//                 </div>
+//                 <div>
+//                   <label style={labelStyle}>
+//                     Expiry Date
+//                     <span style={{ color:"#94A3B8", fontWeight:400, marginLeft:4 }}>(optional)</span>
+//                   </label>
+//                   <input
+//                     type="date" value={form.expiryDate}
+//                     onChange={e => setForm(p => ({ ...p, expiryDate: e.target.value }))}
+//                     style={inputStyle}
+//                   />
+//                   {form.expiryDate && (
+//                     <div style={{ marginTop:6 }}>
+//                       <ExpiryBadge date={form.expiryDate} />
+//                     </div>
+//                   )}
+//                 </div>
+//               </div>
+//             )}
+
+//             {/* ── BATCH MODE fields ── */}
+//             {stockMode === "batch" && (
+//               <div style={{ marginBottom:20 }}>
+//                 <BatchRowsEditor
+//                   rows={batchFormRows}
+//                   onChange={setBatchFormRows}
+//                 />
+//                 {batchFormTotal > 0 && (
+//                   <div style={{ marginTop:10, padding:"10px 14px", background:"#EEF2FF", borderRadius:8, fontSize:13, color:"#3730A3" }}>
+//                     <b>Total Stock:</b> {batchFormTotal} units &nbsp;·&nbsp;
+//                     <b>Batches:</b> {batchFormRows.filter(r => toNum(r.qty) > 0).length}
+//                     {batchFormRows.some(r => r.expiryDate) && (
+//                       <> &nbsp;·&nbsp; <b>Nearest Expiry:</b> {
+//                         fmtDate(
+//                           batchFormRows
+//                             .filter(r => r.expiryDate && toNum(r.qty) > 0)
+//                             .sort((a, b) => new Date(a.expiryDate) - new Date(b.expiryDate))[0]?.expiryDate
+//                         ) || "—"
+//                       }</>
+//                     )}
+//                   </div>
+//                 )}
+//               </div>
+//             )}
+
+//             {/* ── Edit warning ── */}
 //             {editId && (
 //               <div style={{ background:"#FFF7ED", border:"1px solid #FED7AA", borderRadius:8, padding:"10px 14px", marginBottom:18, fontSize:12, color:"#92400E" }}>
-//                 ⚠️ Update karoge toh <b>totalStock aur availableStock dono reset</b> ho jayenge. Sirf quantity add karne ke liye <b>"+Stock"</b> button use karo inventory list mein.
+//                 ⚠️ Update karoge toh stock reset ho jayega. Sirf quantity add karne ke liye <b>"+Stock"</b> use karo inventory list mein.
 //               </div>
 //             )}
 
@@ -641,7 +932,7 @@
 //                 {saving ? "Saving…" : editId ? "Update Stock" : "Add Stock"}
 //               </button>
 //               {editId && (
-//                 <button type="button" onClick={() => { setForm(emptyForm); setEditId(null); }} style={secondaryBtn}>
+//                 <button type="button" onClick={resetForm} style={secondaryBtn}>
 //                   Cancel Edit
 //                 </button>
 //               )}
@@ -666,7 +957,12 @@
 //                       <span style={{ color:"#94A3B8", fontSize:12, marginLeft:8 }}>
 //                         {x.availableStock}/{x.totalStock}
 //                       </span>
-//                       {x.expiryDate && (
+//                       {x.batches?.length > 0 && (
+//                         <span style={{ marginLeft:8, fontSize:11, fontWeight:700, color:"#4338CA" }}>
+//                           · {x.batches.length} batch{x.batches.length > 1 ? "es" : ""}
+//                         </span>
+//                       )}
+//                       {!x.batches?.length && x.expiryDate && (
 //                         <span style={{
 //                           marginLeft:8, fontSize:11, fontWeight:700,
 //                           color: EXPIRY_COLORS[expiryLevel(x.expiryDate)].text,
@@ -989,6 +1285,102 @@ const RestockModal = ({ item, onClose, onSave }) => {
   );
 };
 
+/* ─── Batch Detail Modal ─── */
+const BatchDetailModal = ({ item, onClose }) => {
+  if (!item) return null;
+  const batches = item.batches || [];
+  return (
+    <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,.5)", display:"flex", alignItems:"center", justifyContent:"center", zIndex:1500 }}>
+      <div style={{ background:"#fff", borderRadius:16, padding:"0", maxWidth:620, width:"95%", boxShadow:"0 24px 60px rgba(0,0,0,.25)", overflow:"hidden" }}>
+        {/* Header */}
+        <div style={{ background:"linear-gradient(135deg,#4338CA,#6D28D9)", padding:"18px 24px", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+          <div>
+            <div style={{ fontSize:15, fontWeight:800, color:"#fff" }}>📦 Batch Details</div>
+            <div style={{ fontSize:12, color:"#C7D2FE", marginTop:2 }}>{item.product?.name} — {batches.length} batch{batches.length !== 1 ? "es" : ""}</div>
+          </div>
+          <button onClick={onClose} style={{ background:"rgba(255,255,255,.2)", border:"none", color:"#fff", borderRadius:8, width:32, height:32, cursor:"pointer", fontSize:16, fontWeight:700 }}>✕</button>
+        </div>
+
+        {/* Table */}
+        <div style={{ overflowX:"auto", maxHeight:400, overflowY:"auto" }}>
+          {batches.length === 0 ? (
+            <div style={{ padding:"40px", textAlign:"center", color:"#94A3B8", fontSize:13 }}>Koi batch record nahi</div>
+          ) : (
+            <table style={{ width:"100%", borderCollapse:"collapse" }}>
+              <thead style={{ position:"sticky", top:0, zIndex:1 }}>
+                <tr style={{ background:"#F5F3FF" }}>
+                  <th style={{ ...th, color:"#6D28D9", fontSize:10 }}>#</th>
+                  <th style={{ ...th, color:"#6D28D9", fontSize:10 }}>Batch No.</th>
+                  <th style={{ ...th, color:"#6D28D9", fontSize:10 }}>Mfg. Date</th>
+                  <th style={{ ...th, color:"#6D28D9", fontSize:10 }}>Expiry Date</th>
+                  <th style={{ ...th, color:"#6D28D9", fontSize:10, textAlign:"right" }}>Qty</th>
+                  <th style={{ ...th, color:"#6D28D9", fontSize:10 }}>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {batches.map((b, i) => {
+                  const level = expiryLevel(b.expiryDate);
+                  const ec = EXPIRY_COLORS[level];
+                  return (
+                    <tr key={b._id || i}
+                      style={{ background: i % 2 === 0 ? "#fff" : "#FAFBFF" }}
+                      onMouseEnter={e => e.currentTarget.style.background="#EEF2FF"}
+                      onMouseLeave={e => e.currentTarget.style.background=i%2===0?"#fff":"#FAFBFF"}
+                    >
+                      <td style={{ ...td, color:"#94A3B8", fontSize:12, textAlign:"center", width:36 }}>{i+1}</td>
+                      <td style={{ ...td }}>
+                        {b.batchNo ? (
+                          <span style={{
+                            display:"inline-block", padding:"3px 9px", borderRadius:6,
+                            background:"#EEF2FF", color:"#4338CA",
+                            fontSize:12, fontWeight:700, fontFamily:"monospace",
+                            border:"1px solid #C7D2FE",
+                          }}>{b.batchNo}</span>
+                        ) : (
+                          <span style={{ color:"#CBD5E1", fontSize:12 }}>—</span>
+                        )}
+                      </td>
+                      <td style={{ ...td, fontSize:12, color:"#6B7280" }}>{fmtDate(b.mfgDate) || <span style={{ color:"#CBD5E1" }}>—</span>}</td>
+                      <td style={{ ...td }}>
+                        <ExpiryBadge date={b.expiryDate} />
+                      </td>
+                      <td style={{ ...td, textAlign:"right", fontWeight:800, fontSize:14, color:"#111827" }}>{b.qty}</td>
+                      <td style={{ ...td }}>
+                        {level !== "none" ? (
+                          <span style={{
+                            display:"inline-block", padding:"2px 8px", borderRadius:20,
+                            fontSize:10, fontWeight:700,
+                            background: ec.bg, color: ec.text, border:`1px solid ${ec.border}`,
+                          }}>
+                            {level === "expired" ? "Expired" : level === "critical" ? "Critical" : level === "warning" ? "Warning" : "OK"}
+                          </span>
+                        ) : <span style={{ color:"#CBD5E1", fontSize:12 }}>—</span>}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
+        </div>
+
+        {/* Footer summary */}
+        <div style={{ padding:"12px 24px", background:"#F5F3FF", borderTop:"1px solid #C7D2FE", display:"flex", gap:20, alignItems:"center", flexWrap:"wrap" }}>
+          <span style={{ fontSize:12, color:"#6D28D9", fontWeight:700 }}>
+            Total Qty: <span style={{ fontSize:14 }}>{batches.reduce((s,b)=>s+toNum(b.qty),0)}</span>
+          </span>
+          {batches.some(b=>b.batchNo) && (
+            <span style={{ fontSize:12, color:"#6B7280" }}>
+              {batches.filter(b=>b.batchNo).length} batch numbers assigned
+            </span>
+          )}
+          <button onClick={onClose} style={{ ...secondaryBtn, marginLeft:"auto", fontSize:12, padding:"6px 16px" }}>Close</button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 /* ─── Shared Styles ─── */
 const primaryBtn = {
   padding:"9px 20px", background:"#2563EB", color:"#fff",
@@ -1170,6 +1562,64 @@ function BatchRowsEditor({ rows, onChange }) {
   );
 }
 
+/* ─── Inline Batch Numbers Cell ─── */
+function BatchNumbersCell({ item, onViewAll }) {
+  const batches = item.batches || [];
+  if (batches.length === 0) {
+    return <span style={{ color:"#CBD5E1", fontSize:12 }}>—</span>;
+  }
+
+  // Show first 2 batch numbers inline, rest on click
+  const withBatchNo = batches.filter(b => b.batchNo);
+  const shown = withBatchNo.slice(0, 2);
+  const remaining = withBatchNo.length - 2;
+
+  return (
+    <div style={{ display:"flex", flexDirection:"column", gap:4, alignItems:"flex-start" }}>
+      {/* Batch count pill */}
+      <button
+        onClick={() => onViewAll(item)}
+        style={{
+          display:"inline-flex", alignItems:"center", gap:5,
+          padding:"3px 9px", borderRadius:20, fontSize:11, fontWeight:700,
+          background:"#EEF2FF", color:"#4338CA",
+          border:"1px solid #C7D2FE", cursor:"pointer",
+          transition:"all .15s",
+        }}
+        onMouseEnter={e => { e.currentTarget.style.background="#4338CA"; e.currentTarget.style.color="#fff"; }}
+        onMouseLeave={e => { e.currentTarget.style.background="#EEF2FF"; e.currentTarget.style.color="#4338CA"; }}
+        title="Click to see all batches"
+      >
+        📦 {batches.length} batch{batches.length > 1 ? "es" : ""}
+      </button>
+
+      {/* Batch numbers preview */}
+      {shown.length > 0 && (
+        <div style={{ display:"flex", flexWrap:"wrap", gap:3 }}>
+          {shown.map((b, i) => (
+            <span key={i} style={{
+              display:"inline-block", padding:"1px 7px", borderRadius:4,
+              fontSize:10, fontWeight:700, fontFamily:"monospace",
+              background:"#F5F3FF", color:"#6D28D9",
+              border:"1px solid #DDD6FE",
+            }}>{b.batchNo}</span>
+          ))}
+          {remaining > 0 && (
+            <span style={{
+              display:"inline-block", padding:"1px 7px", borderRadius:4,
+              fontSize:10, fontWeight:600, color:"#94A3B8",
+              cursor:"pointer",
+            }} onClick={() => onViewAll(item)}>+{remaining} more</span>
+          )}
+        </div>
+      )}
+      {shown.length === 0 && withBatchNo.length === 0 && (
+        <span style={{ fontSize:10, color:"#94A3B8" }}>No batch nos.</span>
+      )}
+    </div>
+  );
+}
+
 /* ══════════════════════════════════════
    MAIN COMPONENT
 ══════════════════════════════════════ */
@@ -1191,6 +1641,7 @@ export default function VendorInventory() {
   const closeConfirm = ()       => setConfirm({ open:false, msg:"", cb:null });
 
   const [restockItem, setRestockItem] = useState(null);
+  const [batchDetailItem, setBatchDetailItem] = useState(null); // NEW
 
   const [search, setSearch]     = useState("");
   const [status, setStatus]     = useState("ALL");
@@ -1424,10 +1875,11 @@ export default function VendorInventory() {
   ];
 
   return (
-    <div style={{ fontFamily:"'Segoe UI', system-ui, sans-serif", padding:"20px 24px", maxWidth:1100, margin:"0 auto", color:"#111827", background:"#F8FAFC", minHeight:"100vh" }}>
+    <div style={{ fontFamily:"'Segoe UI', system-ui, sans-serif", padding:"20px 24px", maxWidth:1200, margin:"0 auto", color:"#111827", background:"#F8FAFC", minHeight:"100vh" }}>
       <Toast msg={toast.msg} type={toast.type} />
       <Confirm open={confirm.open} msg={confirm.msg} onOk={confirm.cb} onCancel={closeConfirm} />
       <RestockModal item={restockItem} onClose={() => setRestockItem(null)} onSave={handleRestock} />
+      <BatchDetailModal item={batchDetailItem} onClose={() => setBatchDetailItem(null)} />
 
       {/* Header */}
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:20, flexWrap:"wrap", gap:12 }}>
@@ -1539,7 +1991,8 @@ export default function VendorInventory() {
                       <th style={{ ...th, textAlign:"center" }}>Available</th>
                       <th style={{ ...th, textAlign:"center" }}>Min Alert</th>
                       <th style={th}>Expiry Date</th>
-                      <th style={{ ...th, textAlign:"center" }}>Batches</th>
+                      {/* ─── NEW: Batch Numbers column ─── */}
+                      <th style={{ ...th, minWidth:160 }}>Batch Info</th>
                       <th style={{ ...th, textAlign:"center" }}>Status</th>
                       <th style={{ ...th, textAlign:"center" }}>Actions</th>
                     </tr>
@@ -1552,7 +2005,6 @@ export default function VendorInventory() {
                         level === "expired"  ? "#FFF5F5" :
                         level === "critical" ? "#FFFBF0" :
                         x.availableStock <= x.minStock ? "#FFFDF0" : "transparent";
-                      const batchCount = x.batches?.length || 0;
                       return (
                         <tr key={x._id}
                           style={{ background: rowBg, transition:"background .1s" }}
@@ -1578,19 +2030,9 @@ export default function VendorInventory() {
                           <td style={{ ...td, verticalAlign:"middle" }}>
                             <ExpiryBadge date={x.expiryDate} />
                           </td>
-                          <td style={{ ...td, textAlign:"center", verticalAlign:"middle" }}>
-                            {batchCount > 0 ? (
-                              <span style={{
-                                display:"inline-block", padding:"3px 8px", borderRadius:20,
-                                fontSize:11, fontWeight:700,
-                                background:"#EEF2FF", color:"#4338CA",
-                                border:"1px solid #C7D2FE",
-                              }}>
-                                {batchCount} batch{batchCount > 1 ? "es" : ""}
-                              </span>
-                            ) : (
-                              <span style={{ color:"#CBD5E1", fontSize:12 }}>—</span>
-                            )}
+                          {/* ─── NEW: Batch Numbers cell ─── */}
+                          <td style={{ ...td, verticalAlign:"middle" }}>
+                            <BatchNumbersCell item={x} onViewAll={setBatchDetailItem} />
                           </td>
                           <td style={{ ...td, textAlign:"center", verticalAlign:"middle" }}>
                             <StatusBadge item={x} />

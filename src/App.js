@@ -79,6 +79,8 @@ export default function App() {
           <Route path="inventory" element={<VendorInventory />} />
           <Route path="bulk-discounts" element={<VendorBulkDiscount />} />
           <Route path="users" element={<VendorUsers />} />
+            <Route path="invoice" element={<Invoice />} />
+  <Route path="estimate" element={<EstimateInvoice />} />
         </Route>
 
         {/* ================= ADMIN PANEL ================= */}
@@ -110,8 +112,7 @@ export default function App() {
           <Route path="gst" element={<AdminGST />} />
           <Route path="inventory" element={<AdminInventory />} />
 
-  <Route path="invoice" element={<Invoice />} />
-  <Route path="estimate" element={<EstimateInvoice />} />
+
           <Route path="reports" element={<Reports />} />
           <Route path="support" element={<Support />} />
 
