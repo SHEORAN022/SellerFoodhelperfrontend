@@ -59,7 +59,7 @@ export default function VendorLayout() {
   /* ================= SIDEBAR MENU ================= */
   const menuItems = [
     { to: "/vendor/dashboard", label: "Dashboard", icon: <Home size={20} /> },
-    { to: "/vendor/categories", label: "Categories", icon: <Layers size={20} /> },
+    // { to: "/vendor/categories", label: "Categories", icon: <Layers size={20} /> },
     { to: "/vendor/products", label: "Products", icon: <Package size={20} /> },
 //       {
 //  to: "/vendor/bulk-discounts",

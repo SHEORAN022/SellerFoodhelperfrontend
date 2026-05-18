@@ -1,5 +1,6 @@
 // import React from "react";
 // import { useLocation, useNavigate } from "react-router-dom";
+
 // const fD = (d) =>
 //   new Date(d).toLocaleDateString("en-IN", {
 //     day: "2-digit", month: "short", year: "numeric",
@@ -59,153 +60,99 @@
 //     fontSize: 9, fontWeight: 700, letterSpacing: "1.5px",
 //     textTransform: "uppercase", color: "#64748b", marginBottom: 6,
 //   };
-
-//   const lbl = { fontSize: 10, color: "#94a3b8", marginBottom: 2 };
-//   const val = { fontSize: 12, fontWeight: 500, color: "#0f172a", lineHeight: 1.5 };
+//   const lbl     = { fontSize: 10, color: "#94a3b8", marginBottom: 2 };
+//   const val     = { fontSize: 12, fontWeight: 500, color: "#0f172a", lineHeight: 1.5 };
 //   const divider = { border: "none", borderTop: "0.5px solid #e2e8f0", margin: "14px 0" };
 
 //   const th = {
-//     padding: "7px 6px",
-//     fontSize: 9,
-//     fontWeight: 700,
-//     letterSpacing: "0.8px",
-//     textTransform: "uppercase",
-//     color: "#64748b",
-//     borderBottom: "1px solid #cbd5e1",
-//     background: "#f8fafc",
-//     WebkitPrintColorAdjust: "exact",
-//     printColorAdjust: "exact",
-//     whiteSpace: "nowrap",
-//     textAlign: "left",
+//     padding: "7px 6px", fontSize: 9, fontWeight: 700, letterSpacing: "0.8px",
+//     textTransform: "uppercase", color: "#64748b", borderBottom: "1px solid #cbd5e1",
+//     background: "#f8fafc", whiteSpace: "nowrap", textAlign: "left",
+//     WebkitPrintColorAdjust: "exact", printColorAdjust: "exact",
 //   };
 //   const thR = { ...th, textAlign: "right" };
-
 //   const td = {
-//     padding: "8px 6px",
-//     fontSize: 11,
-//     color: "#0f172a",
-//     borderBottom: "0.5px solid #f1f5f9",
-//     whiteSpace: "nowrap",
+//     padding: "8px 6px", fontSize: 11, color: "#0f172a",
+//     borderBottom: "0.5px solid #f1f5f9", whiteSpace: "nowrap",
 //   };
 //   const tdR = { ...td, textAlign: "right", fontFamily: "monospace", fontSize: 10.5 };
+
+//   /* ── PRINT HANDLER: opens clean blank window ── */
+//   const handlePrint = () => {
+//     const estimateEl = document.querySelector(".estimate-card");
+//     if (!estimateEl) return;
+
+//     const newWin = window.open("", "_blank", "width=1000,height=800");
+//     newWin.document.write(`
+//       <!DOCTYPE html>
+//       <html>
+//         <head>
+//           <meta charset="UTF-8" />
+//           <title>Estimate - ${order._id?.slice(-6).toUpperCase()}</title>
+//           <style>
+//             * { box-sizing: border-box; margin: 0; padding: 0; }
+//             body { background: #fff; font-family: 'Segoe UI', 'Inter', sans-serif; }
+//             @page { size: A4; margin: 10mm 8mm; }
+//             @media print {
+//               * {
+//                 -webkit-print-color-adjust: exact !important;
+//                 print-color-adjust: exact !important;
+//                 color-adjust: exact !important;
+//               }
+//               .item-table-wrap { overflow: visible !important; width: 100% !important; }
+//               .item-table-wrap table {
+//                 min-width: unset !important; width: 100% !important;
+//                 table-layout: auto !important; font-size: 8pt !important;
+//               }
+//               .item-table-wrap table th,
+//               .item-table-wrap table td {
+//                 font-size: 8pt !important; padding: 5px 4px !important;
+//                 white-space: normal !important; word-break: break-word !important;
+//               }
+//               table { page-break-inside: avoid; }
+//               tr    { page-break-inside: avoid; }
+//             }
+//           </style>
+//         </head>
+//         <body>${estimateEl.outerHTML}</body>
+//       </html>
+//     `);
+//     newWin.document.close();
+//     newWin.focus();
+//     setTimeout(() => {
+//       newWin.print();
+//       newWin.close();
+//     }, 500);
+//   };
 
 //   return (
 //     <>
 //       <style>{`
 //         * { box-sizing: border-box; margin: 0; padding: 0; }
 //         body { background: #f1f5f9; }
-
-//         @page {
-//           size: A4;
-//           margin: 10mm 8mm;
-//         }
-
-//         @media print {
-//           .no-print { display: none !important; }
-
-//           html, body {
-//             background: #fff !important;
-//             margin: 0 !important; padding: 0 !important;
-//             width: 100% !important;
-//           }
-
-//           .estimate-wrapper {
-//             padding: 0 !important;
-//             background: #fff !important;
-//             display: block !important;
-//             width: 100% !important;
-//           }
-
-//           .estimate-card {
-//             width: 100% !important;
-//             max-width: 100% !important;
-//             border: none !important;
-//             border-radius: 0 !important;
-//             box-shadow: none !important;
-//             overflow: visible !important;
-//           }
-
-//           * {
-//             -webkit-print-color-adjust: exact !important;
-//             print-color-adjust: exact !important;
-//             color-adjust: exact !important;
-//           }
-
-//           .item-table-wrap {
-//             overflow: visible !important;
-//             width: 100% !important;
-//           }
-//           .item-table-wrap table {
-//             min-width: unset !important;
-//             width: 100% !important;
-//             table-layout: auto !important;
-//             font-size: 8pt !important;
-//           }
-//           .item-table-wrap table th,
-//           .item-table-wrap table td {
-//             font-size: 8pt !important;
-//             padding: 5px 4px !important;
-//             white-space: normal !important;
-//             word-break: break-word !important;
-//           }
-
-//           .estimate-body { padding: 14px 18px !important; }
-
-//           table { page-break-inside: avoid; }
-//           tr    { page-break-inside: avoid; }
-//         }
 //       `}</style>
-     
 
+//       {/* Back Button */}
+//       <div style={{ display: "flex", justifyContent: "center", padding: "16px 12px 0" }}>
+//         <div style={{ width: "100%", maxWidth: 860, display: "flex", justifyContent: "flex-start" }}>
+//           <button
+//             onClick={() => navigate(-1)}
+//             style={{
+//               display: "flex", alignItems: "center", gap: 6,
+//               padding: "8px 16px", border: "0.5px solid #cbd5e1", borderRadius: 8,
+//               background: "#fff", fontSize: 12, fontWeight: 600, color: "#0f172a",
+//               cursor: "pointer", boxShadow: "0 1px 2px rgba(0,0,0,0.05)",
+//             }}
+//           >
+//             ← Back
+//           </button>
+//         </div>
+//       </div>
 
-//      <div
-//   className="no-print"
-//   style={{
-//     display: "flex",
-//     justifyContent: "center",
-//     marginBottom: 14,
-//   }}
-// >
-//   <div
-//     style={{
-//       width: "100%",
-//       maxWidth: 860,
-//       display: "flex",
-//       justifyContent: "flex-start",
-//     }}
-//   >
-//     <button
-//       onClick={() => navigate(-1)}
-//       style={{
-//         display: "flex",
-//         alignItems: "center",
-//         gap: 6,
-//         padding: "8px 16px",
-//         border: "0.5px solid #cbd5e1",
-//         borderRadius: 8,
-//         background: "#fff",
-//         fontSize: 12,
-//         fontWeight: 600,
-//         color: "#0f172a",
-//         cursor: "pointer",
-//         boxShadow: "0 1px 2px rgba(0,0,0,0.05)",
-//       }}
-//       onMouseEnter={(e) => {
-//         e.target.style.background = "#f8fafc";
-//       }}
-//       onMouseLeave={(e) => {
-//         e.target.style.background = "#fff";
-//       }}
-//     >
-//       ← Back
-//     </button>
-//   </div>
-// </div>
 //       <div
-//         className="estimate-wrapper"
 //         style={{
 //           fontFamily: "'Segoe UI', 'Inter', sans-serif",
-//           padding: "24px 12px",
+//           padding: "16px 12px 40px",
 //           minHeight: "100vh",
 //           display: "flex",
 //           justifyContent: "center",
@@ -213,6 +160,7 @@
 //           background: "#f1f5f9",
 //         }}
 //       >
+//         {/* estimate-card: only this gets printed */}
 //         <div
 //           className="estimate-card"
 //           style={{
@@ -235,8 +183,7 @@
 //             alignItems: "center",
 //             flexWrap: "wrap",
 //             gap: 10,
-//             WebkitPrintColorAdjust: "exact",
-//             printColorAdjust: "exact",
+//             WebkitPrintColorAdjust: "exact", printColorAdjust: "exact",
 //           }}>
 //             <div>
 //               <div style={{ fontSize: 24, fontWeight: 700, color: "#f8fafc", letterSpacing: 3 }}>
@@ -247,11 +194,8 @@
 //               </div>
 //             </div>
 //             <div style={{
-//               background: "#334155",
-//               borderRadius: 8,
-//               padding: "6px 14px",
-//               WebkitPrintColorAdjust: "exact",
-//               printColorAdjust: "exact",
+//               background: "#334155", borderRadius: 8, padding: "6px 14px",
+//               WebkitPrintColorAdjust: "exact", printColorAdjust: "exact",
 //             }}>
 //               <div style={{ fontSize: 9, color: "#94a3b8", textTransform: "uppercase", letterSpacing: 1 }}>Payment</div>
 //               <div style={{ fontSize: 13, fontWeight: 600, color: "#f8fafc", marginTop: 2 }}>
@@ -264,24 +208,17 @@
 //           <div style={{
 //             height: 3,
 //             background: "linear-gradient(90deg, #f59e0b, #ef4444)",
-//             WebkitPrintColorAdjust: "exact",
-//             printColorAdjust: "exact",
+//             WebkitPrintColorAdjust: "exact", printColorAdjust: "exact",
 //           }} />
 
 //           {/* ── Body ── */}
-//           <div className="estimate-body" style={{ padding: "20px 28px" }}>
+//           <div style={{ padding: "20px 28px" }}>
 
-//             {/* ── Customer Details ── */}
+//             {/* Customer Details */}
 //             <div style={secLabel}>Customer Details</div>
 //             <div style={{
-//               display: "grid",
-//               gridTemplateColumns: "repeat(3, 1fr)",
-//               gap: 14,
-//               marginBottom: 10,
-//               padding: "12px 14px",
-//               background: "#f8fafc",
-//               borderRadius: 8,
-//               border: "0.5px solid #e2e8f0",
+//               display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14, marginBottom: 10,
+//               padding: "12px 14px", background: "#f8fafc", borderRadius: 8, border: "0.5px solid #e2e8f0",
 //             }}>
 //               <div>
 //                 <div style={lbl}>Customer Name</div>
@@ -299,14 +236,9 @@
 
 //             <hr style={divider} />
 
-//             {/* ── Order Details ── */}
+//             {/* Order Details */}
 //             <div style={secLabel}>Order Details</div>
-//             <div style={{
-//               display: "flex",
-//               gap: 24,
-//               marginBottom: 14,
-//               flexWrap: "wrap",
-//             }}>
+//             <div style={{ display: "flex", gap: 24, marginBottom: 14, flexWrap: "wrap" }}>
 //               <div>
 //                 <div style={lbl}>Order Number</div>
 //                 <div style={{ ...val, fontFamily: "monospace", fontSize: 13, fontWeight: 700, color: "#1e293b" }}>
@@ -323,9 +255,7 @@
 //               </div>
 //               <div>
 //                 <div style={lbl}>Total Qty</div>
-//                 <div style={val}>
-//                   {calcItems.reduce((s, it) => s + it.quantity, 0)}
-//                 </div>
+//                 <div style={val}>{calcItems.reduce((s, it) => s + it.quantity, 0)}</div>
 //               </div>
 //             </div>
 
@@ -334,19 +264,14 @@
 //             {/* ── Item Table ── */}
 //             <div style={secLabel}>Item Table</div>
 //             <div className="item-table-wrap" style={{ overflowX: "auto" }}>
-//               <table style={{
-//                 width: "100%",
-//                 minWidth: 680,
-//                 borderCollapse: "collapse",
-//                 tableLayout: "auto",
-//               }}>
+//               <table style={{ width: "100%", minWidth: 680, borderCollapse: "collapse", tableLayout: "auto" }}>
 //                 <thead>
 //                   <tr>
 //                     <th style={{ ...th, width: 28 }}>S.No</th>
 //                     <th style={{ ...th, width: "25%" }}>Item Name</th>
 //                     <th style={thR}>MRP</th>
 //                     <th style={th}>HSN</th>
-//                     <th style={{ ...thR }}>Item Qty</th>
+//                     <th style={thR}>Item Qty</th>
 //                     <th style={th}>Unit</th>
 //                     <th style={th}>Packing</th>
 //                     <th style={thR}>Rate</th>
@@ -359,8 +284,7 @@
 //                       key={i}
 //                       style={{
 //                         background: i % 2 === 0 ? "#fff" : "#f8fafc",
-//                         WebkitPrintColorAdjust: "exact",
-//                         printColorAdjust: "exact",
+//                         WebkitPrintColorAdjust: "exact", printColorAdjust: "exact",
 //                       }}
 //                     >
 //                       <td style={{ ...td, color: "#94a3b8", fontSize: 10 }}>{i + 1}</td>
@@ -378,8 +302,6 @@
 //                       <td style={{ ...tdR, fontWeight: 700, color: "#1e293b" }}>{fN(it.total)}</td>
 //                     </tr>
 //                   ))}
-
-//                   {/* Empty state */}
 //                   {calcItems.length === 0 && (
 //                     <tr>
 //                       <td colSpan={9} style={{ ...td, textAlign: "center", color: "#94a3b8", padding: "24px 0" }}>
@@ -393,25 +315,10 @@
 
 //             {/* ── Grand Total ── */}
 //             <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 16 }}>
-//               <div style={{
-//                 minWidth: 240,
-//                 borderTop: "2px solid #1e293b",
-//                 paddingTop: 10,
-//               }}>
-//                 <div style={{
-//                   display: "flex",
-//                   justifyContent: "space-between",
-//                   alignItems: "center",
-//                 }}>
-//                   <span style={{ fontSize: 15, fontWeight: 700, color: "#1e293b" }}>
-//                     Grand Total
-//                   </span>
-//                   <span style={{
-//                     fontFamily: "monospace",
-//                     fontSize: 18,
-//                     fontWeight: 800,
-//                     color: "#b45309",
-//                   }}>
+//               <div style={{ minWidth: 240, borderTop: "2px solid #1e293b", paddingTop: 10 }}>
+//                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+//                   <span style={{ fontSize: 15, fontWeight: 700, color: "#1e293b" }}>Grand Total</span>
+//                   <span style={{ fontFamily: "monospace", fontSize: 18, fontWeight: 800, color: "#b45309" }}>
 //                     {fC(grandTotal)}
 //                   </span>
 //                 </div>
@@ -424,15 +331,10 @@
 
 //             {/* ── Note ── */}
 //             <div style={{
-//               marginTop: 20,
-//               padding: "10px 14px",
-//               background: "#fefce8",
-//               border: "0.5px solid #fde68a",
-//               borderRadius: 8,
-//               fontSize: 11,
-//               color: "#92400e",
-//               WebkitPrintColorAdjust: "exact",
-//               printColorAdjust: "exact",
+//               marginTop: 20, padding: "10px 14px",
+//               background: "#fefce8", border: "0.5px solid #fde68a", borderRadius: 8,
+//               fontSize: 11, color: "#92400e",
+//               WebkitPrintColorAdjust: "exact", printColorAdjust: "exact",
 //             }}>
 //               ⚠️ <strong>Note:</strong> Yeh ek estimate hai. Final invoice alag se issue ki jayegi. GST charges applicable hogi final bill mein.
 //             </div>
@@ -449,24 +351,17 @@
 //             background: "#f8fafc",
 //             flexWrap: "wrap",
 //             gap: 8,
-//             WebkitPrintColorAdjust: "exact",
-//             printColorAdjust: "exact",
+//             WebkitPrintColorAdjust: "exact", printColorAdjust: "exact",
 //           }}>
 //             <span style={{ fontSize: 11, color: "#94a3b8" }}>
 //               Estimate — This is not a final tax invoice · {new Date().getFullYear()}
 //             </span>
 //             <button
-//               className="no-print"
-//               onClick={() => window.print()}
+//               onClick={handlePrint}
 //               style={{
-//                 padding: "7px 18px",
-//                 border: "0.5px solid #cbd5e1",
-//                 borderRadius: 8,
-//                 background: "#1e293b",
-//                 fontSize: 11,
-//                 fontWeight: 600,
-//                 color: "#f8fafc",
-//                 cursor: "pointer",
+//                 padding: "7px 18px", border: "0.5px solid #cbd5e1", borderRadius: 8,
+//                 background: "#1e293b", fontSize: 11, fontWeight: 600,
+//                 color: "#f8fafc", cursor: "pointer",
 //               }}
 //             >
 //               🖨️ Print Estimate
@@ -494,6 +389,22 @@ const fN = (n, d = 2) =>
   });
 
 const fC = (n) => "₹" + fN(n, 2);
+
+/* ── Packing Sort: skip leading numbers, sort by first meaningful word ── */
+/* e.g. "2 BOX 5 pcs" → "BOX", "1 OUTER 1 LADI 1 pcs" → "OUTER", "4 gm" → "gm", "11 pcs" → "pcs" */
+const getPackingKey = (packing) => {
+  const str = (packing || "").toString().trim();
+  if (str === "—" || str === "") return "\uffff"; // push to end
+  // Remove all leading number+space chunks, return first word
+  const cleaned = str.replace(/^(\d+\s+)+/, "").trim();
+  return cleaned.toLowerCase();
+};
+
+const packingSort = (a, b) => {
+  const kA = getPackingKey(a.packing);
+  const kB = getPackingKey(b.packing);
+  return kA.localeCompare(kB, "en", { sensitivity: "base" });
+};
 
 export default function EstimateInvoicePage() {
   const { state } = useLocation();
@@ -528,7 +439,7 @@ export default function EstimateInvoicePage() {
     const quantity = Number(it.quantity || 1);
     const total    = rate * quantity;
     return { ...it, rate, mrp, quantity, total };
-  });
+  }).sort(packingSort);
 
   const grandTotal = calcItems.reduce((s, i) => s + i.total, 0);
 

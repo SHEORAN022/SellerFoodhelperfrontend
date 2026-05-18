@@ -47,10 +47,21 @@ export default function VendorDashboard() {
   const pendingOrders   = orders.filter(o => o.status === "pending").length;
   const deliveredOrders = orders.filter(o => o.status === "delivered").length;
   const cancelledOrders = orders.filter(o => o.status === "cancelled").length;
-  const totalEarnings   = orders
-    .filter(o => o.status === "delivered")
-    .reduce((s, o) => s + (Number(o.totalAmount) || 0), 0);
-
+  // const totalEarnings   = orders
+  //   .filter(o => o.status === "delivered")
+  //   .reduce((s, o) => s + (Number(o.totalAmount) || 0), 0);
+const totalEarnings = orders
+  .filter((o) => o.status === "delivered")
+  .reduce(
+    (s, o) =>
+      s +
+      (
+        Number(o.finalPrice) ||
+        Number(o.totalPrice) ||
+        0
+      ),
+    0
+  );
   const latestOrders = [...orders]
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
     .slice(0, 8);
@@ -395,7 +406,13 @@ export default function VendorDashboard() {
                             })}
                           </td>
                           <td className="r">
-                            <span className="vd-amount">₹{Number(o.totalAmount).toLocaleString()}</span>
+                            <span className="vd-amount">₹{
+  Number(
+    o.finalPrice ||
+    o.totalPrice ||
+    0
+  ).toLocaleString("en-IN")
+}</span>
                           </td>
                         </tr>
                       );
