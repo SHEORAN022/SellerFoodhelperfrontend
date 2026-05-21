@@ -1,3 +1,4 @@
+
 // import React from "react";
 // import { useLocation, useNavigate } from "react-router-dom";
 
@@ -13,6 +14,22 @@
 //   });
 
 // const fC = (n) => "₹" + fN(n, 2);
+
+// /* ── Packing Sort: skip leading numbers, sort by first meaningful word ── */
+// /* e.g. "2 BOX 5 pcs" → "BOX", "1 OUTER 1 LADI 1 pcs" → "OUTER", "4 gm" → "gm", "11 pcs" → "pcs" */
+// const getPackingKey = (packing) => {
+//   const str = (packing || "").toString().trim();
+//   if (str === "—" || str === "") return "\uffff"; // push to end
+//   // Remove all leading number+space chunks, return first word
+//   const cleaned = str.replace(/^(\d+\s+)+/, "").trim();
+//   return cleaned.toLowerCase();
+// };
+
+// const packingSort = (a, b) => {
+//   const kA = getPackingKey(a.packing);
+//   const kB = getPackingKey(b.packing);
+//   return kA.localeCompare(kB, "en", { sensitivity: "base" });
+// };
 
 // export default function EstimateInvoicePage() {
 //   const { state } = useLocation();
@@ -47,7 +64,7 @@
 //     const quantity = Number(it.quantity || 1);
 //     const total    = rate * quantity;
 //     return { ...it, rate, mrp, quantity, total };
-//   });
+//   }).sort(packingSort);
 
 //   const grandTotal = calcItems.reduce((s, i) => s + i.total, 0);
 
@@ -374,6 +391,8 @@
 //   );
 // }
 
+
+
 import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
@@ -390,12 +409,10 @@ const fN = (n, d = 2) =>
 
 const fC = (n) => "₹" + fN(n, 2);
 
-/* ── Packing Sort: skip leading numbers, sort by first meaningful word ── */
-/* e.g. "2 BOX 5 pcs" → "BOX", "1 OUTER 1 LADI 1 pcs" → "OUTER", "4 gm" → "gm", "11 pcs" → "pcs" */
+/* ── Packing Sort ── */
 const getPackingKey = (packing) => {
   const str = (packing || "").toString().trim();
-  if (str === "—" || str === "") return "\uffff"; // push to end
-  // Remove all leading number+space chunks, return first word
+  if (str === "—" || str === "") return "\uffff";
   const cleaned = str.replace(/^(\d+\s+)+/, "").trim();
   return cleaned.toLowerCase();
 };
@@ -410,6 +427,11 @@ export default function EstimateInvoicePage() {
   const { state } = useLocation();
   const navigate = useNavigate();
   const order = state?.order;
+
+  /* ── PRINT HANDLER: current window pe print karo ── */
+  const handlePrint = () => {
+    window.print();
+  };
 
   if (!order) {
     return (
@@ -432,7 +454,7 @@ export default function EstimateInvoicePage() {
     );
   }
 
-  /* ── Items (no GST calc — just rate × qty) ── */
+  /* ── Items ── */
   const calcItems = (order.items || []).map((it) => {
     const rate     = Number(it.rate || it.unitPrice || 0);
     const mrp      = Number(it.mrp  || rate);
@@ -452,15 +474,14 @@ export default function EstimateInvoicePage() {
     fontSize: 9, fontWeight: 700, letterSpacing: "1.5px",
     textTransform: "uppercase", color: "#64748b", marginBottom: 6,
   };
-  const lbl     = { fontSize: 10, color: "#94a3b8", marginBottom: 2 };
-  const val     = { fontSize: 12, fontWeight: 500, color: "#0f172a", lineHeight: 1.5 };
+  const lbl = { fontSize: 10, color: "#94a3b8", marginBottom: 2 };
+  const val = { fontSize: 12, fontWeight: 500, color: "#0f172a", lineHeight: 1.5 };
   const divider = { border: "none", borderTop: "0.5px solid #e2e8f0", margin: "14px 0" };
 
   const th = {
     padding: "7px 6px", fontSize: 9, fontWeight: 700, letterSpacing: "0.8px",
     textTransform: "uppercase", color: "#64748b", borderBottom: "1px solid #cbd5e1",
     background: "#f8fafc", whiteSpace: "nowrap", textAlign: "left",
-    WebkitPrintColorAdjust: "exact", printColorAdjust: "exact",
   };
   const thR = { ...th, textAlign: "right" };
   const td = {
@@ -469,63 +490,83 @@ export default function EstimateInvoicePage() {
   };
   const tdR = { ...td, textAlign: "right", fontFamily: "monospace", fontSize: 10.5 };
 
-  /* ── PRINT HANDLER: opens clean blank window ── */
-  const handlePrint = () => {
-    const estimateEl = document.querySelector(".estimate-card");
-    if (!estimateEl) return;
-
-    const newWin = window.open("", "_blank", "width=1000,height=800");
-    newWin.document.write(`
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <meta charset="UTF-8" />
-          <title>Estimate - ${order._id?.slice(-6).toUpperCase()}</title>
-          <style>
-            * { box-sizing: border-box; margin: 0; padding: 0; }
-            body { background: #fff; font-family: 'Segoe UI', 'Inter', sans-serif; }
-            @page { size: A4; margin: 10mm 8mm; }
-            @media print {
-              * {
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
-                color-adjust: exact !important;
-              }
-              .item-table-wrap { overflow: visible !important; width: 100% !important; }
-              .item-table-wrap table {
-                min-width: unset !important; width: 100% !important;
-                table-layout: auto !important; font-size: 8pt !important;
-              }
-              .item-table-wrap table th,
-              .item-table-wrap table td {
-                font-size: 8pt !important; padding: 5px 4px !important;
-                white-space: normal !important; word-break: break-word !important;
-              }
-              table { page-break-inside: avoid; }
-              tr    { page-break-inside: avoid; }
-            }
-          </style>
-        </head>
-        <body>${estimateEl.outerHTML}</body>
-      </html>
-    `);
-    newWin.document.close();
-    newWin.focus();
-    setTimeout(() => {
-      newWin.print();
-      newWin.close();
-    }, 500);
-  };
-
   return (
     <>
+      {/*
+        ─────────────────────────────────────────────────────────
+        PRINT CSS STRATEGY:
+        - @media print mein .no-print hide karo
+        - .estimate-card ko pure page pe show karo
+        - background colors force karo
+        ─────────────────────────────────────────────────────────
+      */}
       <style>{`
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { background: #f1f5f9; }
+
+        @media print {
+          /* Sab kuch hide karo by default */
+          body * { visibility: hidden; }
+
+          /* Sirf estimate-card aur uske andar ka sab visible karo */
+          .estimate-card,
+          .estimate-card * { visibility: visible; }
+
+          /* Back button, Print button, aur wrapper hide karo */
+          .no-print { display: none !important; }
+
+          /* Card ko full page pe position karo */
+          .estimate-card {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            border: none !important;
+            border-radius: 0 !important;
+            box-shadow: none !important;
+            overflow: visible !important;
+          }
+
+          /* Background colors force karo */
+          * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            color-adjust: exact !important;
+          }
+
+          /* Table overflow fix */
+          .item-table-wrap {
+            overflow: visible !important;
+            width: 100% !important;
+          }
+          .item-table-wrap table {
+            min-width: unset !important;
+            width: 100% !important;
+            table-layout: auto !important;
+          }
+          .item-table-wrap table th,
+          .item-table-wrap table td {
+            font-size: 8pt !important;
+            padding: 5px 4px !important;
+            white-space: normal !important;
+            word-break: break-word !important;
+          }
+
+          /* Page settings */
+          @page {
+            size: A4;
+            margin: 8mm 8mm;
+          }
+
+          /* Table page break avoid */
+          table { page-break-inside: avoid; }
+          tr    { page-break-inside: avoid; }
+        }
       `}</style>
 
-      {/* Back Button */}
-      <div style={{ display: "flex", justifyContent: "center", padding: "16px 12px 0" }}>
+      {/* Back Button — print mein hide hoga */}
+      <div className="no-print" style={{ display: "flex", justifyContent: "center", padding: "16px 12px 0" }}>
         <div style={{ width: "100%", maxWidth: 860, display: "flex", justifyContent: "flex-start" }}>
           <button
             onClick={() => navigate(-1)}
@@ -552,7 +593,7 @@ export default function EstimateInvoicePage() {
           background: "#f1f5f9",
         }}
       >
-        {/* estimate-card: only this gets printed */}
+        {/* estimate-card: yahi print hoga */}
         <div
           className="estimate-card"
           style={{
@@ -565,7 +606,6 @@ export default function EstimateInvoicePage() {
             boxShadow: "0 2px 16px rgba(0,0,0,0.07)",
           }}
         >
-
           {/* ── Header ── */}
           <div style={{
             background: "#1e293b",
@@ -575,7 +615,8 @@ export default function EstimateInvoicePage() {
             alignItems: "center",
             flexWrap: "wrap",
             gap: 10,
-            WebkitPrintColorAdjust: "exact", printColorAdjust: "exact",
+            WebkitPrintColorAdjust: "exact",
+            printColorAdjust: "exact",
           }}>
             <div>
               <div style={{ fontSize: 24, fontWeight: 700, color: "#f8fafc", letterSpacing: 3 }}>
@@ -611,6 +652,7 @@ export default function EstimateInvoicePage() {
             <div style={{
               display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14, marginBottom: 10,
               padding: "12px 14px", background: "#f8fafc", borderRadius: 8, border: "0.5px solid #e2e8f0",
+              WebkitPrintColorAdjust: "exact", printColorAdjust: "exact",
             }}>
               <div>
                 <div style={lbl}>Customer Name</div>
@@ -748,7 +790,9 @@ export default function EstimateInvoicePage() {
             <span style={{ fontSize: 11, color: "#94a3b8" }}>
               Estimate — This is not a final tax invoice · {new Date().getFullYear()}
             </span>
+            {/* Print button — print mein hide hoga */}
             <button
+              className="no-print"
               onClick={handlePrint}
               style={{
                 padding: "7px 18px", border: "0.5px solid #cbd5e1", borderRadius: 8,
