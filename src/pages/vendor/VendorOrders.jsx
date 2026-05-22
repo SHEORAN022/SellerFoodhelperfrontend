@@ -1,3 +1,4 @@
+
 // import React, { useEffect, useState, useMemo, useRef, useCallback } from "react";
 // import axios from "axios";
 // import { useNavigate } from "react-router-dom";
@@ -153,7 +154,7 @@
 
 // /* ══════════════════════════════════════════════════
 //    BUILD INVOICE ORDER HELPER
-//    VendorOrders data → Invoice/Estimate page format
+//    FIX: sno is now passed in so InvoicePage can show Sr.No. correctly
 // ══════════════════════════════════════════════════ */
 // const getVendorInfo = () => {
 //   try {
@@ -163,7 +164,8 @@
 //   return null;
 // };
 
-// const buildInvoiceOrder = (order) => {
+// /* sno param added — caller passes the descending serial number */
+// const buildInvoiceOrder = (order, sno) => {
 //   const vendor = getVendorInfo();
 //   const invoiceNo = `INV-${String(order._id).slice(-8).toUpperCase()}`;
 
@@ -176,6 +178,8 @@
 //     paymentNote: order.paymentNote || "",
 //     totalPrice:  order.totalPrice  || 0,
 //     paidAmount:  order.paidAmount  || 0,
+//     /* ── Sr.No. fix: pass it through so InvoicePage can render it ── */
+//     sno: sno ?? "—",
 
 //     vendor: {
 //       name:    vendor?.name    || vendor?.shopName || "Your Store",
@@ -201,17 +205,19 @@
 //     },
 
 //     items: (order.items || []).map((it) => ({
-//       name:      it.name      || "—",
-//       image:     it.image     || "",
-//       unitPrice: it.unitPrice || 0,
-//       rate:      it.unitPrice || 0,
-//       mrp:       it.mrp       || it.unitPrice || 0,
-//       quantity:  it.quantity  || 1,
-//       unit:      it.unit      || "pcs",
-//       packing:   it.packing   || "",
-//       hsn:       it.hsn       || it.product?.hsn || "",
-//       gstRate:   it.gstRate   || it.product?.gstRate || 0,
-//       product:   it.product,
+//       name:         it.name         || "—",
+//       image:        it.image        || "",
+//       unitPrice:    it.unitPrice    || 0,
+//       rate:         it.unitPrice    || 0,
+//       mrp:          it.mrp          || it.unitPrice || 0,
+//       quantity:     it.quantity     || 1,
+//       unit:         it.unit         || "pcs",
+//       packing:      it.packing      || "",
+//       packagingText:it.packagingText|| it.packing || "",
+//       hsn:          it.hsn          || it.product?.hsn || "",
+//       gstRate:      it.gstRate      || it.product?.gstRate || 0,
+//       cess:         it.cess         || 0,
+//       product:      it.product,
 //     })),
 //   };
 // };
@@ -451,14 +457,17 @@
 //           <table style={{ width: "100%", borderCollapse: "collapse" }}>
 //             <thead>
 //               <tr style={{ background: "#f8fafc" }}>
-//                 {["Product", "Unit Price", "Qty", "Subtotal"].map((h) => (
-//                   <th key={h} style={{ padding: "8px 10px", fontSize: 10, fontWeight: 700, color: "#64748b", textAlign: h === "Product" ? "left" : "right", borderBottom: "1px solid #e2e8f0", textTransform: "uppercase", letterSpacing: .5 }}>{h}</th>
+//                 {["#", "Product", "Unit Price", "Qty", "Subtotal"].map((h) => (
+//                   <th key={h} style={{ padding: "8px 10px", fontSize: 10, fontWeight: 700, color: "#64748b", textAlign: h === "#" || h === "Product" ? "left" : "right", borderBottom: "1px solid #e2e8f0", textTransform: "uppercase", letterSpacing: .5 }}>{h}</th>
 //                 ))}
 //               </tr>
 //             </thead>
 //             <tbody>
 //               {items.map((it, idx) => (
 //                 <tr key={idx} style={{ borderBottom: "1px solid #f1f5f9" }}>
+//                   <td style={{ padding: "10px", fontSize: 11, fontWeight: 700, color: "#94a3b8", width: 32 }}>
+//                     {items.length - idx}
+//                   </td>
 //                   <td style={{ padding: "10px", fontSize: 12.5, fontWeight: 600, color: "#0f172a" }}>
 //                     <div>{it.name || "—"}</div>
 //                     {it.unit && <div style={{ fontSize: 10, color: "#94a3b8" }}>{it.unit}</div>}
@@ -573,18 +582,6 @@
 //     notify("Items updated ✓");
 //   }, [notify]);
 
-//   /* ── Navigate to Invoice ── */
-//   const openInvoice = useCallback((order) => {
-//     const invoiceOrder = buildInvoiceOrder(order);
-//     navigate("/vendor/invoice", { state: { order: invoiceOrder } });
-//   }, [navigate]);
-
-//   /* ── Navigate to Estimate ── */
-//   const openEstimate = useCallback((order) => {
-//     const invoiceOrder = buildInvoiceOrder(order);
-//     navigate("/vendor/estimate", { state: { order: invoiceOrder } });
-//   }, [navigate]);
-
 //   /* ── Filter + Sort ── */
 //   const filtered = orders.filter((o) => {
 //     const t = search.toLowerCase();
@@ -592,29 +589,19 @@
 //       || (o.user?.name || "").toLowerCase().includes(t)
 //       || (o.user?.phone || "").includes(t)
 //       || (o.items || []).some((i) => (i.name || "").toLowerCase().includes(t));
-//   //   return matchText
-//   //     && (!filterStatus  || o.status      === filterStatus)
-//   //     && (!filterPayment || o.paymentMode === filterPayment);
-//   // });
-//   return (
-//   matchText &&
-//   (
-//     !filterStatus ||
-//     o.status === filterStatus ||
-//     (
-//       filterStatus === "cancelled" &&
+//     return (
+//       matchText &&
 //       (
-//         o.status === "canceled" ||
-//         o.status === "cancelled"
-//       )
-//     )
-//   ) &&
-//   (
-//     !filterPayment ||
-//     o.paymentMode === filterPayment
-//   )
-// );
-// });
+//         !filterStatus ||
+//         o.status === filterStatus ||
+//         (
+//           filterStatus === "cancelled" &&
+//           (o.status === "canceled" || o.status === "cancelled")
+//         )
+//       ) &&
+//       (!filterPayment || o.paymentMode === filterPayment)
+//     );
+//   });
 
 //   const sorted = [...filtered].sort((a, b) => {
 //     if (sortBy === "date_desc")   return new Date(b.createdAt) - new Date(a.createdAt);
@@ -627,6 +614,9 @@
 //   const totalPages = Math.max(1, Math.ceil(sorted.length / ROWS));
 //   const paginated  = sorted.slice((page - 1) * ROWS, page * ROWS);
 //   const allSel     = paginated.length > 0 && paginated.every((o) => selectedIds.includes(o._id));
+
+//   const totalSorted = sorted.length;
+//   const getGlobalIndex = (pageLocalIndex) => (page - 1) * ROWS + pageLocalIndex;
 
 //   const toggleAll = () =>
 //     setSelectedIds(allSel
@@ -642,6 +632,20 @@
 
 //   const paymentModalOrder = paymentModalId ? orders.find((o) => o._id === paymentModalId) : null;
 //   const editModalOrder    = editModalId    ? orders.find((o) => o._id === editModalId)    : null;
+
+//   /* ══════════════════════════════════════════════════
+//      FIX: Navigate to Invoice — sno passed to buildInvoiceOrder
+//   ══════════════════════════════════════════════════ */
+//   const openInvoice = useCallback((order, sno) => {
+//     const invoiceOrder = buildInvoiceOrder(order, sno);
+//     navigate("/vendor/invoice", { state: { order: invoiceOrder } });
+//   }, [navigate]);
+
+//   /* ── Navigate to Estimate ── */
+//   const openEstimate = useCallback((order, sno) => {
+//     const invoiceOrder = buildInvoiceOrder(order, sno);
+//     navigate("/vendor/estimate", { state: { order: invoiceOrder } });
+//   }, [navigate]);
 
 //   /* ── CSS ── */
 //   const css = `
@@ -694,7 +698,7 @@
 //     .vo-bulk{background:#eef2ff;border:1px solid #c7d2fe;border-radius:9px;
 //       padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 //     .vo-table-wrap{overflow-x:auto}
-//     .vo-table{width:100%;border-collapse:collapse;min-width:1400px}
+//     .vo-table{width:100%;border-collapse:collapse;min-width:1450px}
 //     .vo-table thead tr{border-bottom:1px solid var(--border);background:#f8fafc}
 //     .vo-table th{padding:9px 10px;text-align:left;font-size:10.5px;font-weight:700;
 //       letter-spacing:.5px;text-transform:uppercase;color:var(--dim);white-space:nowrap}
@@ -772,6 +776,12 @@
 //       color:#991b1b;font-size:13px;margin-bottom:14px;display:flex;align-items:center;gap:8px}
 //     input[type=checkbox]{width:14px;height:14px;accent-color:var(--blue);cursor:pointer}
 //     .inv-actions{display:flex;flex-direction:column;gap:4px}
+//     .sno-badge{
+//       display:inline-flex;align-items:center;justify-content:center;
+//       width:24px;height:24px;border-radius:6px;
+//       background:#f1f5f9;border:1px solid #e2e8f0;
+//       font-size:10.5px;font-weight:700;color:#64748b;font-family:monospace;
+//     }
 //     @media(max-width:768px){
 //       .vo-stats{grid-template-columns:1fr 1fr}
 //       .vo-body{padding:14px 12px 56px}
@@ -873,6 +883,7 @@
 //                 <thead>
 //                   <tr>
 //                     <th style={{ width: 34 }}><input type="checkbox" checked={allSel} onChange={toggleAll} /></th>
+//                     <th style={{ width: 44, textAlign: "center" }}>S.No.</th>
 //                     <th>Order ID</th>
 //                     <th>Date</th>
 //                     <th>Customer</th>
@@ -892,13 +903,13 @@
 //                   {loading ? (
 //                     [1,2,3,4,5].map((i) => (
 //                       <tr className="sh-row" key={i}>
-//                         {Array(14).fill(0).map((_, j) => (
-//                           <td key={j}><div className="shimmer" style={{ width: [34,90,90,130,70,80,70,90,100,130,80,80,100,36][j] }} /></td>
+//                         {Array(15).fill(0).map((_, j) => (
+//                           <td key={j}><div className="shimmer" style={{ width: [34,44,90,90,130,70,80,70,90,100,130,80,80,100,36][j] }} /></td>
 //                         ))}
 //                       </tr>
 //                     ))
 //                   ) : paginated.length === 0 ? (
-//                     <tr><td colSpan={14}>
+//                     <tr><td colSpan={15}>
 //                       <div className="vo-empty">
 //                         <div style={{ fontSize: 36, opacity: .2, marginBottom: 10 }}>🛍️</div>
 //                         <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 4 }}>{search ? "No orders found" : "No orders yet"}</div>
@@ -907,13 +918,16 @@
 //                         </div>
 //                       </div>
 //                     </td></tr>
-//                   ) : paginated.map((order) => {
+//                   ) : paginated.map((order, pageLocalIdx) => {
 //                     const sc    = STATUS_CONFIG[order.status] || STATUS_CONFIG.pending;
 //                     const pc    = PAYMENT_CONFIG[order.paymentMode] || { label: order.paymentMode || "—", color: "#64748b", bg: "#f1f5f9" };
 //                     const isExp = expandedRow === order._id;
 //                     const isUpd = updatingId  === order._id;
 //                     const ps    = getPaymentStatus(order);
 //                     const initials = (order.user?.name || "U").split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase();
+
+//                     /* ── Descending S.No. ── */
+//                     const sno = totalSorted - getGlobalIndex(pageLocalIdx);
 
 //                     return (
 //                       <React.Fragment key={order._id}>
@@ -922,6 +936,9 @@
 //                             <input type="checkbox"
 //                               checked={selectedIds.includes(order._id)}
 //                               onChange={() => setSelectedIds((p) => p.includes(order._id) ? p.filter((x) => x !== order._id) : [...p, order._id])} />
+//                           </td>
+//                           <td style={{ textAlign: "center" }}>
+//                             <span className="sno-badge">{sno}</span>
 //                           </td>
 //                           <td>
 //                             <span className="vo-oid" onClick={() => setExpandedRow(isExp ? null : order._id)}>{shortId(order._id)}</span>
@@ -982,13 +999,13 @@
 //                               ✏️ Edit
 //                             </button>
 //                           </td>
-//                           {/* ── Invoice / Estimate Buttons ── */}
+//                           {/* ── FIX: sno passed to openInvoice and openEstimate ── */}
 //                           <td>
 //                             <div className="inv-actions">
-//                               <button className="btn btn-slate" onClick={() => openInvoice(order)}>
+//                               <button className="btn btn-slate" onClick={() => openInvoice(order, sno)}>
 //                                 🧾 Invoice
 //                               </button>
-//                               <button className="btn btn-orange" onClick={() => openEstimate(order)}>
+//                               <button className="btn btn-orange" onClick={() => openEstimate(order, sno)}>
 //                                 📋 Estimate
 //                               </button>
 //                             </div>
@@ -1001,13 +1018,27 @@
 //                         </tr>
 
 //                         {isExp && (
-//                           <tr><td colSpan={14} style={{ padding: 0 }}>
+//                           <tr><td colSpan={15} style={{ padding: 0 }}>
 //                             <div className="vo-detail">
 //                               <div className="vo-detail-inner">
+//                                 <div style={{
+//                                   display: "inline-flex", alignItems: "center", gap: 6,
+//                                   background: "#f1f5f9", border: "1px solid #e2e8f0",
+//                                   borderRadius: 7, padding: "4px 10px",
+//                                   fontSize: 11, fontWeight: 700, color: "#475569",
+//                                   marginBottom: 10,
+//                                 }}>
+//                                   <span style={{ fontFamily: "monospace", fontSize: 12, color: "#2563eb" }}>#{sno}</span>
+//                                   <span style={{ width: 1, height: 12, background: "#e2e8f0", display: "inline-block" }} />
+//                                   <span>{shortId(order._id)}</span>
+//                                   <span style={{ color: "#94a3b8", fontWeight: 500 }}>· {fmt(order.createdAt)}</span>
+//                                 </div>
+
 //                                 <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: .5, textTransform: "uppercase", color: "#94a3b8", marginBottom: 10 }}>Order Items</div>
 //                                 <table className="vo-items-tbl">
 //                                   <thead>
 //                                     <tr>
+//                                       <th style={{ width: 36, textAlign: "center" }}>#</th>
 //                                       <th style={{ width: 50 }}>Image</th>
 //                                       <th>Product</th>
 //                                       <th>Unit Price</th>
@@ -1018,6 +1049,9 @@
 //                                   <tbody>
 //                                     {(order.items || []).map((item, idx) => (
 //                                       <tr key={idx}>
+//                                         <td style={{ textAlign: "center", fontWeight: 700, fontSize: 11, color: "#94a3b8", fontFamily: "monospace" }}>
+//                                           {(order.items || []).length - idx}
+//                                         </td>
 //                                         <td>{item.image ? <img className="vo-item-img" src={item.image} alt={item.name} /> : <div className="vo-item-ph">🛒</div>}</td>
 //                                         <td style={{ fontWeight: 600 }}>{item.name || "—"}</td>
 //                                         <td>{fC(item.unitPrice || 0)}</td>
@@ -1026,7 +1060,7 @@
 //                                       </tr>
 //                                     ))}
 //                                     <tr style={{ background: "#f8fafc" }}>
-//                                       <td colSpan={4} style={{ textAlign: "right", fontWeight: 700, paddingRight: 12, fontSize: 12 }}>Total</td>
+//                                       <td colSpan={5} style={{ textAlign: "right", fontWeight: 700, paddingRight: 12, fontSize: 12 }}>Total</td>
 //                                       <td style={{ fontWeight: 800, fontSize: 14, color: "#2563eb" }}>{fC(order.totalPrice || 0)}</td>
 //                                     </tr>
 //                                   </tbody>
@@ -1146,6 +1180,22 @@ const shortId = (id) => id ? `#${String(id).slice(-6).toUpperCase()}` : "—";
 const fN      = (n, d = 2) => Number(n || 0).toLocaleString("en-IN", { minimumFractionDigits: d, maximumFractionDigits: d });
 const fC      = (n) => "₹" + fN(n, 2);
 
+/* ── Financial Year Helper ── */
+const getFinancialYear = (date) => {
+  const d = date ? new Date(date) : new Date();
+  const month = d.getMonth(); // 0-indexed
+  const year  = d.getFullYear();
+  if (month >= 3) return `${year}-${String(year + 1).slice(-2)}`; // April onwards → e.g. 2026-27
+  return `${year - 1}-${String(year).slice(-2)}`;                  // Jan–Mar       → e.g. 2025-26
+};
+
+/* ── Invoice Number Generator: INV/FY/SNO ── */
+const buildInvoiceNo = (sno, date) => {
+  const fy  = getFinancialYear(date);
+  const num = String(sno).padStart(3, "0");
+  return `INV/${fy}/${num}`;
+};
+
 const getPaymentStatus = (order) => {
   if (order.status === "cancelled") return "cancelled";
   return order.paymentStatus || "unpaid";
@@ -1262,7 +1312,7 @@ const GSTCSVExportButton = ({ orders, filterStatus }) => {
 
 /* ══════════════════════════════════════════════════
    BUILD INVOICE ORDER HELPER
-   FIX: sno is now passed in so InvoicePage can show Sr.No. correctly
+   invoiceNo format: INV/FY/SNO  (e.g. INV/2026-27/005)
 ══════════════════════════════════════════════════ */
 const getVendorInfo = () => {
   try {
@@ -1272,10 +1322,9 @@ const getVendorInfo = () => {
   return null;
 };
 
-/* sno param added — caller passes the descending serial number */
 const buildInvoiceOrder = (order, sno) => {
-  const vendor = getVendorInfo();
-  const invoiceNo = `INV-${String(order._id).slice(-8).toUpperCase()}`;
+  const vendor    = getVendorInfo();
+  const invoiceNo = buildInvoiceNo(sno, order.createdAt);  // INV/2026-27/005
 
   return {
     _id:        order._id,
@@ -1286,7 +1335,6 @@ const buildInvoiceOrder = (order, sno) => {
     paymentNote: order.paymentNote || "",
     totalPrice:  order.totalPrice  || 0,
     paidAmount:  order.paidAmount  || 0,
-    /* ── Sr.No. fix: pass it through so InvoicePage can render it ── */
     sno: sno ?? "—",
 
     vendor: {
@@ -1624,6 +1672,9 @@ export default function VendorOrders() {
   const [filterStatus,   setFilterStatus]   = useState("");
   const [filterPayment,  setFilterPayment]  = useState("");
   const [sortBy,         setSortBy]         = useState("date_desc");
+  /* ── Date range filter ── */
+  const [dateFrom,       setDateFrom]       = useState("");
+  const [dateTo,         setDateTo]         = useState("");
   const [page,           setPage]           = useState(1);
   const [expandedRow,    setExpandedRow]    = useState(null);
   const [updatingId,     setUpdatingId]     = useState(null);
@@ -1690,22 +1741,46 @@ export default function VendorOrders() {
     notify("Items updated ✓");
   }, [notify]);
 
+  /* ── Clear date filter ── */
+  const clearDateFilter = () => { setDateFrom(""); setDateTo(""); setPage(1); };
+  const hasDateFilter   = !!(dateFrom || dateTo);
+
   /* ── Filter + Sort ── */
   const filtered = orders.filter((o) => {
     const t = search.toLowerCase();
-    const matchText = (o._id || "").toLowerCase().includes(t)
-      || (o.user?.name || "").toLowerCase().includes(t)
-      || (o.user?.phone || "").includes(t)
-      || (o.items || []).some((i) => (i.name || "").toLowerCase().includes(t));
+    const matchText =
+      (o._id || "").toLowerCase().includes(t) ||
+      (o.user?.name || "").toLowerCase().includes(t) ||
+      (o.user?.phone || "").includes(t) ||
+      (o.items || []).some((i) => (i.name || "").toLowerCase().includes(t));
+
+    /* Date range filter */
+    let matchDate = true;
+    if (dateFrom || dateTo) {
+      const orderDate = o.createdAt ? new Date(o.createdAt) : null;
+      if (!orderDate) {
+        matchDate = false;
+      } else {
+        if (dateFrom) {
+          const from = new Date(dateFrom);
+          from.setHours(0, 0, 0, 0);
+          if (orderDate < from) matchDate = false;
+        }
+        if (dateTo && matchDate) {
+          const to = new Date(dateTo);
+          to.setHours(23, 59, 59, 999);
+          if (orderDate > to) matchDate = false;
+        }
+      }
+    }
+
     return (
       matchText &&
+      matchDate &&
       (
         !filterStatus ||
         o.status === filterStatus ||
-        (
-          filterStatus === "cancelled" &&
-          (o.status === "canceled" || o.status === "cancelled")
-        )
+        (filterStatus === "cancelled" && (o.status === "canceled" || o.status === "cancelled"))
       ) &&
       (!filterPayment || o.paymentMode === filterPayment)
     );
@@ -1723,7 +1798,7 @@ export default function VendorOrders() {
   const paginated  = sorted.slice((page - 1) * ROWS, page * ROWS);
   const allSel     = paginated.length > 0 && paginated.every((o) => selectedIds.includes(o._id));
 
-  const totalSorted = sorted.length;
+  const totalSorted    = sorted.length;
   const getGlobalIndex = (pageLocalIndex) => (page - 1) * ROWS + pageLocalIndex;
 
   const toggleAll = () =>
@@ -1741,15 +1816,11 @@ export default function VendorOrders() {
   const paymentModalOrder = paymentModalId ? orders.find((o) => o._id === paymentModalId) : null;
   const editModalOrder    = editModalId    ? orders.find((o) => o._id === editModalId)    : null;
 
-  /* ══════════════════════════════════════════════════
-     FIX: Navigate to Invoice — sno passed to buildInvoiceOrder
-  ══════════════════════════════════════════════════ */
   const openInvoice = useCallback((order, sno) => {
     const invoiceOrder = buildInvoiceOrder(order, sno);
     navigate("/vendor/invoice", { state: { order: invoiceOrder } });
   }, [navigate]);
 
-  /* ── Navigate to Estimate ── */
   const openEstimate = useCallback((order, sno) => {
     const invoiceOrder = buildInvoiceOrder(order, sno);
     navigate("/vendor/estimate", { state: { order: invoiceOrder } });
@@ -1803,6 +1874,32 @@ export default function VendorOrders() {
       font-family:'Plus Jakarta Sans',sans-serif;font-size:12.5px;color:var(--text);
       background:var(--bg);outline:none;cursor:pointer}
     .vo-sel:focus{border-color:var(--blue)}
+    /* ── Date filter ── */
+    .vo-date-row{
+      padding:10px 16px;border-bottom:1px solid #e2e8f0;
+      display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+      transition:background .2s;
+    }
+    .vo-date-row.active{background:#eff6ff}
+    .vo-date-row.inactive{background:#fafafa}
+    .vo-date-lbl{font-size:11px;font-weight:700;color:#475569;white-space:nowrap;display:flex;align-items:center;gap:5px}
+    .vo-date-input{
+      padding:6px 10px;border:1px solid #e2e8f0;border-radius:8px;
+      font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;color:#0f172a;
+      background:#f8fafc;outline:none;cursor:pointer;height:32px;
+      transition:all .2s;
+    }
+    .vo-date-input:focus{border-color:#2563eb;background:#fff;box-shadow:0 0 0 3px rgba(37,99,235,.08)}
+    .vo-date-input.active{border-color:#2563eb;background:#eff6ff;color:#1d4ed8;font-weight:700}
+    .vo-date-sep{font-size:12px;color:#94a3b8;font-weight:600;user-select:none}
+    .vo-date-clear{
+      display:inline-flex;align-items:center;gap:4px;padding:5px 10px;
+      border-radius:8px;border:1px solid #fde68a;background:#fef3c7;
+      color:#92400e;font-size:11px;font-weight:700;cursor:pointer;
+      font-family:'Plus Jakarta Sans',sans-serif;transition:background .15s;
+    }
+    .vo-date-clear:hover{background:#fde68a}
+    .vo-date-info{font-size:11px;color:#2563eb;font-weight:600;margin-left:2px}
     .vo-bulk{background:#eef2ff;border:1px solid #c7d2fe;border-radius:9px;
       padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
     .vo-table-wrap{overflow-x:auto}
@@ -1861,7 +1958,7 @@ export default function VendorOrders() {
       display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
     .vo-pager-info{font-size:12px;color:var(--mid)}
     .pg-btn{width:28px;height:28px;border-radius:6px;border:1px solid var(--border);
-      background:#fff;color:var(--mid);font-size:12px;cursor:pointer;transition:all .15s;
+      background:#fff;color:var(--mid);font-size:12px;cursor:pointer;transition:all .15px;
       display:flex;align-items:center;justify-content:center;font-family:'Plus Jakarta Sans',sans-serif}
     .pg-btn:hover:not(:disabled){border-color:var(--blue);color:var(--blue)}
     .pg-btn.active{background:var(--blue);border-color:var(--blue);color:#fff;font-weight:700}
@@ -1959,6 +2056,8 @@ export default function VendorOrders() {
           )}
 
           <div className="vo-card">
+
+            {/* ── Toolbar: Search + Filters ── */}
             <div className="vo-toolbar">
               <div className="vo-tbl-left">
                 <div className="vo-search">
@@ -1980,10 +2079,49 @@ export default function VendorOrders() {
                   <option value="amount_desc">Amount ↓</option>
                   <option value="amount_asc">Amount ↑</option>
                 </select>
-                {(search || filterStatus || filterPayment) && (
-                  <span style={{ padding: "3px 8px", borderRadius: 20, border: "1px solid #e2e8f0", fontSize: 11, fontWeight: 600, color: "#64748b" }}>{filtered.length} results</span>
+                {(search || filterStatus || filterPayment || hasDateFilter) && (
+                  <span style={{ padding: "3px 8px", borderRadius: 20, border: "1px solid #e2e8f0", fontSize: 11, fontWeight: 600, color: "#64748b" }}>
+                    {filtered.length} results
+                  </span>
                 )}
               </div>
+            </div>
+
+            {/* ── Date Range Filter Row ── */}
+            <div className={`vo-date-row ${hasDateFilter ? "active" : "inactive"}`}>
+              <span className="vo-date-lbl">📅 Date Range:</span>
+              <input
+                type="date"
+                className={`vo-date-input${dateFrom ? " active" : ""}`}
+                value={dateFrom}
+                max={dateTo || undefined}
+                title="From date"
+                onChange={(e) => { setDateFrom(e.target.value); setPage(1); }}
+              />
+              <span className="vo-date-sep">→</span>
+              <input
+                type="date"
+                className={`vo-date-input${dateTo ? " active" : ""}`}
+                value={dateTo}
+                min={dateFrom || undefined}
+                title="To date"
+                onChange={(e) => { setDateTo(e.target.value); setPage(1); }}
+              />
+              {hasDateFilter && (
+                <button className="vo-date-clear" onClick={clearDateFilter} title="Clear date filter">
+                  ✕ Clear
+                </button>
+              )}
+              {hasDateFilter && (
+                <span className="vo-date-info">
+                  {filtered.length} order{filtered.length !== 1 ? "s" : ""}
+                  {dateFrom && dateTo
+                    ? ` · ${fmt(dateFrom + "T00:00:00")} – ${fmt(dateTo + "T00:00:00")}`
+                    : dateFrom
+                    ? ` · From ${fmt(dateFrom + "T00:00:00")}`
+                    : ` · Until ${fmt(dateTo + "T00:00:00")}`}
+                </span>
+              )}
             </div>
 
             <div className="vo-table-wrap">
@@ -2019,11 +2157,24 @@ export default function VendorOrders() {
                   ) : paginated.length === 0 ? (
                     <tr><td colSpan={15}>
                       <div className="vo-empty">
-                        <div style={{ fontSize: 36, opacity: .2, marginBottom: 10 }}>🛍️</div>
-                        <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 4 }}>{search ? "No orders found" : "No orders yet"}</div>
-                        <div style={{ fontSize: 12, color: "#94a3b8" }}>
-                          {search ? `No results for "${search}"` : "Orders will appear here once customers place them"}
+                        <div style={{ fontSize: 36, opacity: .2, marginBottom: 10 }}>
+                          {hasDateFilter ? "📅" : "🛍️"}
                         </div>
+                        <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 4 }}>
+                          {hasDateFilter ? "No orders in this date range" : search ? "No orders found" : "No orders yet"}
+                        </div>
+                        <div style={{ fontSize: 12, color: "#94a3b8" }}>
+                          {hasDateFilter
+                            ? "Try changing the date range or clear the filter"
+                            : search
+                            ? `No results for "${search}"`
+                            : "Orders will appear here once customers place them"}
+                        </div>
+                        {hasDateFilter && (
+                          <button className="btn btn-ghost" style={{ marginTop: 12, fontSize: 12 }} onClick={clearDateFilter}>
+                            Clear Date Filter
+                          </button>
+                        )}
                       </div>
                     </td></tr>
                   ) : paginated.map((order, pageLocalIdx) => {
@@ -2034,7 +2185,7 @@ export default function VendorOrders() {
                     const ps    = getPaymentStatus(order);
                     const initials = (order.user?.name || "U").split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase();
 
-                    /* ── Descending S.No. ── */
+                    /* Descending S.No. based on sorted list */
                     const sno = totalSorted - getGlobalIndex(pageLocalIdx);
 
                     return (
@@ -2107,7 +2258,6 @@ export default function VendorOrders() {
                               ✏️ Edit
                             </button>
                           </td>
-                          {/* ── FIX: sno passed to openInvoice and openEstimate ── */}
                           <td>
                             <div className="inv-actions">
                               <button className="btn btn-slate" onClick={() => openInvoice(order, sno)}>
@@ -2129,6 +2279,7 @@ export default function VendorOrders() {
                           <tr><td colSpan={15} style={{ padding: 0 }}>
                             <div className="vo-detail">
                               <div className="vo-detail-inner">
+                                {/* Invoice number preview in expanded row */}
                                 <div style={{
                                   display: "inline-flex", alignItems: "center", gap: 6,
                                   background: "#f1f5f9", border: "1px solid #e2e8f0",
@@ -2140,6 +2291,10 @@ export default function VendorOrders() {
                                   <span style={{ width: 1, height: 12, background: "#e2e8f0", display: "inline-block" }} />
                                   <span>{shortId(order._id)}</span>
                                   <span style={{ color: "#94a3b8", fontWeight: 500 }}>· {fmt(order.createdAt)}</span>
+                                  <span style={{ width: 1, height: 12, background: "#e2e8f0", display: "inline-block" }} />
+                                  <span style={{ fontFamily: "monospace", fontSize: 10.5, color: "#7c3aed" }}>
+                                    {buildInvoiceNo(sno, order.createdAt)}
+                                  </span>
                                 </div>
 
                                 <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: .5, textTransform: "uppercase", color: "#94a3b8", marginBottom: 10 }}>Order Items</div>
