@@ -54,6 +54,9 @@
 //     );
 //   }
 
+//   /* ── Use invoiceNo exactly as passed from VendorOrders ── */
+//   const invoiceNo = order.invoiceNo || "";
+
 //   const calcItems = (order.items || []).map((it) => {
 //     const unitPrice = Number(it.unitPrice || it.rate || 0);
 //     const quantity  = Number(it.quantity  || 1);
@@ -132,13 +135,9 @@
 //   const thR = { ...th,  textAlign: "right" };
 
 //   /* ══════════════════════════════════════════════════
-//      PRINT: Build pure HTML string — no React, no CSS
-//      variables, all styles hardcoded inline.
-//      Opens in new tab → triggers print → closes.
+//      PRINT: pure HTML string — invoiceNo used directly
 //   ══════════════════════════════════════════════════ */
 //   const handlePrint = () => {
-//     const invoiceNo = order.invoiceNo || "";
-
 //     /* ── rows ── */
 //     const itemRows = calcItems.map((it, i) => `
 //       <tr style="background:${i % 2 === 0 ? "#fff" : "#fafafa"}">
@@ -178,7 +177,7 @@
 //       ? `<div style="display:flex;justify-content:space-between;padding:3px 0;font-size:11pt;color:#64748b"><span>Coupon ${order.couponCode ? `(${order.couponCode})` : ""}</span><span style="font-family:monospace;color:#16a34a">− ${fC(couponDiscount, 2)}</span></div>`
 //       : "";
 
-//     const thStyle = `padding:5px 4px;font-size:8pt;font-weight:700;letter-spacing:0.6px;text-transform:uppercase;color:#64748b;border-bottom:1px solid #e2e8f0;background:#f8fafc;white-space:nowrap`;
+//     const thStyle  = `padding:5px 4px;font-size:8pt;font-weight:700;letter-spacing:0.6px;text-transform:uppercase;color:#64748b;border-bottom:1px solid #e2e8f0;background:#f8fafc;white-space:nowrap`;
 //     const thRStyle = `${thStyle};text-align:right`;
 
 //     const html = `<!DOCTYPE html>
@@ -405,7 +404,7 @@
 //             <div>
 //               <div style={{ fontSize: 22, fontWeight: 500, color: "#f8fafc", letterSpacing: 2 }}>INVOICE</div>
 //               <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 3, fontFamily: "monospace" }}>
-//                 {order.invoiceNo} · {fD(order.createdAt)}
+//                 {invoiceNo} · {fD(order.createdAt)}
 //               </div>
 //             </div>
 //             <div style={{ textAlign: "right" }}>
@@ -460,7 +459,8 @@
 //               </div>
 //               <div>
 //                 <div style={lbl}>Invoice No.</div>
-//                 <div style={{ ...val, fontFamily: "monospace", fontSize: 11 }}>{order.invoiceNo}</div>
+//                 {/* Shows the INV/FY/SNO format passed from VendorOrders */}
+//                 <div style={{ ...val, fontFamily: "monospace", fontSize: 11 }}>{invoiceNo}</div>
 //               </div>
 //               <div><div style={lbl}>Invoice Date</div><div style={val}>{fD(order.createdAt)}</div></div>
 //               <div><div style={lbl}>Due Date</div><div style={val}>{order.dueDate ? fD(order.dueDate) : "—"}</div></div>
@@ -673,6 +673,7 @@ export default function InvoicePage() {
   const { state } = useLocation();
   const order = state?.order;
 
+  /* ── Guard 1: Order nahi mila ── */
   if (!order) {
     return (
       <div style={{
@@ -683,20 +684,71 @@ export default function InvoicePage() {
           background: "#fff", border: "0.5px solid #e2e8f0",
           borderRadius: 12, padding: "40px 48px", textAlign: "center",
         }}>
+          <div style={{ fontSize: 36, marginBottom: 12 }}>🛍️</div>
           <h2 style={{ fontSize: 18, fontWeight: 500, color: "#0f172a", marginBottom: 8 }}>
             No Order Found
           </h2>
           <p style={{ fontSize: 13, color: "#64748b" }}>
             Please navigate from your orders page.
           </p>
+          <button
+            onClick={() => navigate(-1)}
+            style={{
+              marginTop: 16, padding: "8px 20px", border: "0.5px solid #cbd5e1",
+              borderRadius: 8, background: "#fff", fontSize: 12, fontWeight: 500,
+              color: "#0f172a", cursor: "pointer",
+            }}
+          >← Back to Orders</button>
         </div>
       </div>
     );
   }
 
-  /* ── Use invoiceNo exactly as passed from VendorOrders ── */
+  /* ── invoiceNo: VendorOrders se pass hota hai ── */
   const invoiceNo = order.invoiceNo || "";
 
+  /* ── Guard 2: Order confirmed nahi hai — invoice nahi ban sakti ── */
+  if (!invoiceNo) {
+    return (
+      <div style={{
+        minHeight: "100vh", display: "flex",
+        justifyContent: "center", alignItems: "center", background: "#f1f5f9",
+      }}>
+        <div style={{
+          background: "#fff", border: "0.5px solid #e2e8f0",
+          borderRadius: 12, padding: "40px 48px", textAlign: "center", maxWidth: 400,
+        }}>
+          <div style={{ fontSize: 42, marginBottom: 14 }}>🔒</div>
+          <h2 style={{ fontSize: 18, fontWeight: 700, color: "#0f172a", marginBottom: 8 }}>
+            Invoice Not Generated Yet
+          </h2>
+          <p style={{ fontSize: 13, color: "#64748b", lineHeight: 1.6 }}>
+            Invoice sirf tab generate hoti hai jab order ka status
+            <strong style={{ color: "#1e40af" }}> Accepted</strong>,
+            <strong style={{ color: "#5b21b6" }}> Shipped</strong>, ya
+            <strong style={{ color: "#065f46" }}> Delivered</strong> ho jaye.
+          </p>
+          <div style={{
+            marginTop: 16, padding: "10px 14px",
+            background: "#fef3c7", border: "1px solid #fde68a",
+            borderRadius: 8, fontSize: 12, color: "#92400e",
+          }}>
+            ⏳ Current Status: <strong>{order.status ? order.status.charAt(0).toUpperCase() + order.status.slice(1) : "Pending"}</strong>
+          </div>
+          <button
+            onClick={() => navigate(-1)}
+            style={{
+              marginTop: 18, padding: "8px 20px", border: "0.5px solid #cbd5e1",
+              borderRadius: 8, background: "#fff", fontSize: 12, fontWeight: 500,
+              color: "#0f172a", cursor: "pointer",
+            }}
+          >← Back to Orders</button>
+        </div>
+      </div>
+    );
+  }
+
+  /* ── Items calculate karo ── */
   const calcItems = (order.items || []).map((it) => {
     const unitPrice = Number(it.unitPrice || it.rate || 0);
     const quantity  = Number(it.quantity  || 1);
@@ -721,6 +773,7 @@ export default function InvoicePage() {
 
   const totalItemCount = calcItems.length;
 
+  /* ── HSN Map ── */
   const hsnMap = {};
   calcItems.forEach((it) => {
     const key = it.hsn || "N/A";
@@ -732,13 +785,14 @@ export default function InvoicePage() {
     hsnMap[key].total   += it.total;
   });
 
-  const grandTotal    = calcItems.reduce((s, i) => s + i.total,    0);
-  const totalTaxable  = calcItems.reduce((s, i) => s + i.taxable,  0);
-  const totalGST      = calcItems.reduce((s, i) => s + i.totalGst, 0);
-  const totalCess     = calcItems.reduce((s, i) => s + i.cess,     0);
+  const grandTotal     = calcItems.reduce((s, i) => s + i.total,    0);
+  const totalTaxable   = calcItems.reduce((s, i) => s + i.taxable,  0);
+  const totalGST       = calcItems.reduce((s, i) => s + i.totalGst, 0);
+  const totalCess      = calcItems.reduce((s, i) => s + i.cess,     0);
   const effectiveTotal = order.finalPrice ?? grandTotal;
   const couponDiscount = order.couponDiscount || 0;
 
+  /* ── Status badge colors ── */
   const statusMap = {
     pending:   { bg: "#fff7ed", color: "#c2410c", dot: "#fb923c" },
     confirmed: { bg: "#f0fdf4", color: "#15803d", dot: "#4ade80" },
@@ -754,6 +808,7 @@ export default function InvoicePage() {
   const addrFull = [addr.name, addr.street, addr.city, addr.state, addr.pincode]
     .filter(Boolean).join(", ");
 
+  /* ── Style shortcuts ── */
   const lbl      = { fontSize: 10, color: "#94a3b8", marginBottom: 2 };
   const val      = { fontSize: 12, fontWeight: 500, color: "#0f172a", lineHeight: 1.5 };
   const divider  = { border: "none", borderTop: "0.5px solid #e2e8f0", margin: "14px 0" };
@@ -774,11 +829,8 @@ export default function InvoicePage() {
   const tdR = { ...td,  textAlign: "right", fontFamily: "monospace", fontSize: 10.5 };
   const thR = { ...th,  textAlign: "right" };
 
-  /* ══════════════════════════════════════════════════
-     PRINT: pure HTML string — invoiceNo used directly
-  ══════════════════════════════════════════════════ */
+  /* ── Print Handler ── */
   const handlePrint = () => {
-    /* ── rows ── */
     const itemRows = calcItems.map((it, i) => `
       <tr style="background:${i % 2 === 0 ? "#fff" : "#fafafa"}">
         <td style="padding:5px 4px;text-align:center;border-bottom:0.5px solid #f1f5f9">
@@ -991,7 +1043,7 @@ export default function InvoicePage() {
     newWin.document.close();
   };
 
-  /* ── Inline style helpers for the on-screen view ── */
+  /* ── Inline badge style ── */
   const snoBadgeStyle = {
     display: "inline-flex", alignItems: "center", justifyContent: "center",
     width: 22, height: 22, borderRadius: 6, background: "#f1f5f9",
@@ -1035,7 +1087,7 @@ export default function InvoicePage() {
           borderRadius: 12, overflow: "hidden",
         }}>
 
-          {/* Header */}
+          {/* ── Header ── */}
           <div style={{
             background: "#0f172a", padding: "20px 28px",
             display: "flex", justifyContent: "space-between",
@@ -1059,7 +1111,7 @@ export default function InvoicePage() {
           {/* Amber stripe */}
           <div style={{ height: 3, background: "#f59e0b" }} />
 
-          {/* Body */}
+          {/* ── Body ── */}
           <div style={{ padding: "20px 28px" }}>
 
             {/* Vendor Details */}
@@ -1099,7 +1151,6 @@ export default function InvoicePage() {
               </div>
               <div>
                 <div style={lbl}>Invoice No.</div>
-                {/* Shows the INV/FY/SNO format passed from VendorOrders */}
                 <div style={{ ...val, fontFamily: "monospace", fontSize: 11 }}>{invoiceNo}</div>
               </div>
               <div><div style={lbl}>Invoice Date</div><div style={val}>{fD(order.createdAt)}</div></div>
@@ -1250,7 +1301,7 @@ export default function InvoicePage() {
 
           </div>{/* /body */}
 
-          {/* Footer */}
+          {/* ── Footer ── */}
           <div style={{
             padding: "12px 28px", borderTop: "0.5px solid #e2e8f0",
             display: "flex", justifyContent: "space-between", alignItems: "center",
