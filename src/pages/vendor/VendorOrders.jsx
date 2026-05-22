@@ -1294,8 +1294,6 @@ const PAYMENT_CONFIG = {
 };
 
 const ALL_STATUSES = ["pending", "accepted", "shipped", "delivered", "cancelled"];
-
-/* ── Confirmed statuses ke liye invoice banega ── */
 const CONFIRMED_STATUSES = ["accepted", "shipped", "delivered"];
 
 /* ── Helpers ── */
@@ -1308,17 +1306,39 @@ const fC      = (n) => "₹" + fN(n, 2);
 /* ── Financial Year Helper ── */
 const getFinancialYear = (date) => {
   const d = date ? new Date(date) : new Date();
-  const month = d.getMonth();
+  const month = d.getMonth(); // 0-indexed
   const year  = d.getFullYear();
-  if (month >= 3) return `${year}-${String(year + 1).slice(-2)}`;
-  return `${year - 1}-${String(year).slice(-2)}`;
+  if (month >= 3) return `${year}-${String(year + 1).slice(-2)}`; // April onwards → e.g. 2026-27
+  return `${year - 1}-${String(year).slice(-2)}`;                  // Jan–Mar       → e.g. 2025-26
 };
 
-/* ── Invoice Number Generator: INV/FY/SNO ── */
-const buildInvoiceNo = (sno, date) => {
+/* ── Invoice Number Generator: INV/FY/SEQ ──
+   SEQ = confirmed-orders-only sequential rank (not display sno)
+*/
+const buildInvoiceNo = (invoiceSeqNo, date) => {
   const fy  = getFinancialYear(date);
-  const num = String(sno).padStart(3, "0");
+  const num = String(invoiceSeqNo).padStart(3, "0");
   return `INV/${fy}/${num}`;
+};
+
+/* ── Build a map of orderId → invoiceSeqNo
+   Logic:
+   1. Take all orders
+   2. Filter only confirmed (accepted/shipped/delivered)
+   3. Sort by createdAt ascending (oldest confirmed = seq 1)
+   4. Assign seq 1, 2, 3... — these are PERMANENT per financial year
+      (same order will always get same seq number regardless of filter/page)
+*/
+const buildInvoiceSeqMap = (allOrders) => {
+  const confirmed = allOrders
+    .filter((o) => CONFIRMED_STATUSES.includes(o.status?.toLowerCase()))
+    .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+
+  const map = {};
+  confirmed.forEach((o, idx) => {
+    map[o._id] = idx + 1; // 1-based
+  });
+  return map;
 };
 
 const getPaymentStatus = (order) => {
@@ -1435,7 +1455,11 @@ const GSTCSVExportButton = ({ orders, filterStatus }) => {
   );
 };
 
-/* ── Vendor Info ── */
+/* ══════════════════════════════════════════════════
+   BUILD INVOICE ORDER HELPER
+   - sno          = display serial number (position in sorted list)
+   - invoiceSeqNo = confirmed-orders-only sequential rank (for invoice number)
+══════════════════════════════════════════════════ */
 const getVendorInfo = () => {
   try {
     const raw = localStorage.getItem("vendorInfo") || localStorage.getItem("vendor");
@@ -1444,30 +1468,26 @@ const getVendorInfo = () => {
   return null;
 };
 
-/* ══════════════════════════════════════════════════
-   BUILD INVOICE ORDER HELPER
-   invoiceNo: sirf confirmed orders ke liye INV/FY/CONFIRMED_SNO
-   baaki ke liye null
-══════════════════════════════════════════════════ */
-const buildInvoiceOrder = (order, confirmedSno) => {
-  const vendor = getVendorInfo();
+const buildInvoiceOrder = (order, sno, invoiceSeqNo) => {
+  const vendor    = getVendorInfo();
+  const isConfirmed = CONFIRMED_STATUSES.includes(order.status?.toLowerCase());
 
-  /* confirmedSno sirf tab milega jab order confirmed ho,
-     warna null pass hoga aur invoiceNo null rahega */
-  const invoiceNo = (confirmedSno != null && CONFIRMED_STATUSES.includes(order.status?.toLowerCase()))
-    ? buildInvoiceNo(confirmedSno, order.createdAt)
+  // invoiceNo only for confirmed orders, using confirmed-only sequential number
+  const invoiceNo = isConfirmed && invoiceSeqNo
+    ? buildInvoiceNo(invoiceSeqNo, order.createdAt)
     : null;
 
   return {
-    _id:         order._id,
+    _id:        order._id,
     invoiceNo,
-    createdAt:   order.createdAt,
-    status:      order.status,
+    createdAt:  order.createdAt,
+    status:     order.status,
     paymentMode: order.paymentMode || "cash",
     paymentNote: order.paymentNote || "",
     totalPrice:  order.totalPrice  || 0,
     paidAmount:  order.paidAmount  || 0,
-    sno: confirmedSno ?? "—",
+    sno: sno ?? "—",           // display serial number (shown on invoice as Sr. No.)
+    invoiceSeqNo: invoiceSeqNo ?? null, // confirmed-only rank (used in invoice number)
 
     vendor: {
       name:    vendor?.name    || vendor?.shopName || "Your Store",
@@ -1493,19 +1513,19 @@ const buildInvoiceOrder = (order, confirmedSno) => {
     },
 
     items: (order.items || []).map((it) => ({
-      name:          it.name          || "—",
-      image:         it.image         || "",
-      unitPrice:     it.unitPrice     || 0,
-      rate:          it.unitPrice     || 0,
-      mrp:           it.mrp           || it.unitPrice || 0,
-      quantity:      it.quantity      || 1,
-      unit:          it.unit          || "pcs",
-      packing:       it.packing       || "",
-      packagingText: it.packagingText || it.packing || "",
-      hsn:           it.hsn           || it.product?.hsn || "",
-      gstRate:       it.gstRate       || it.product?.gstRate || 0,
-      cess:          it.cess          || 0,
-      product:       it.product,
+      name:         it.name         || "—",
+      image:        it.image        || "",
+      unitPrice:    it.unitPrice    || 0,
+      rate:         it.unitPrice    || 0,
+      mrp:          it.mrp          || it.unitPrice || 0,
+      quantity:     it.quantity     || 1,
+      unit:         it.unit         || "pcs",
+      packing:      it.packing      || "",
+      packagingText:it.packagingText|| it.packing || "",
+      hsn:          it.hsn          || it.product?.hsn || "",
+      gstRate:      it.gstRate      || it.product?.gstRate || 0,
+      cess:         it.cess         || 0,
+      product:      it.product,
     })),
   };
 };
@@ -1804,6 +1824,7 @@ export default function VendorOrders() {
   const [filterStatus,   setFilterStatus]   = useState("");
   const [filterPayment,  setFilterPayment]  = useState("");
   const [sortBy,         setSortBy]         = useState("date_desc");
+  /* ── Date range filter ── */
   const [dateFrom,       setDateFrom]       = useState("");
   const [dateTo,         setDateTo]         = useState("");
   const [page,           setPage]           = useState(1);
@@ -1835,6 +1856,14 @@ export default function VendorOrders() {
   }, []);
 
   useEffect(() => { fetchOrders(); }, [fetchOrders]);
+
+  /* ══════════════════════════════════════════════════
+     INVOICE SEQUENCE MAP
+     Built once from ALL orders (not filtered/sorted view).
+     Confirmed orders sorted by createdAt asc → seq 1, 2, 3...
+     This map never changes with page/filter changes.
+  ══════════════════════════════════════════════════ */
+  const invoiceSeqMap = useMemo(() => buildInvoiceSeqMap(orders), [orders]);
 
   const updateStatus = async (orderId, status) => {
     setUpdatingId(orderId);
@@ -1872,10 +1901,11 @@ export default function VendorOrders() {
     notify("Items updated ✓");
   }, [notify]);
 
+  /* ── Clear date filter ── */
   const clearDateFilter = () => { setDateFrom(""); setDateTo(""); setPage(1); };
   const hasDateFilter   = !!(dateFrom || dateTo);
 
-  /* ── Filter ── */
+  /* ── Filter + Sort ── */
   const filtered = orders.filter((o) => {
     const t = search.toLowerCase();
     const matchText =
@@ -1884,6 +1914,7 @@ export default function VendorOrders() {
       (o.user?.phone || "").includes(t) ||
       (o.items || []).some((i) => (i.name || "").toLowerCase().includes(t));
 
+    /* Date range filter */
     let matchDate = true;
     if (dateFrom || dateTo) {
       const orderDate = o.createdAt ? new Date(o.createdAt) : null;
@@ -1915,7 +1946,6 @@ export default function VendorOrders() {
     );
   });
 
-  /* ── Sort ── */
   const sorted = [...filtered].sort((a, b) => {
     if (sortBy === "date_desc")   return new Date(b.createdAt) - new Date(a.createdAt);
     if (sortBy === "date_asc")    return new Date(a.createdAt) - new Date(b.createdAt);
@@ -1923,27 +1953,6 @@ export default function VendorOrders() {
     if (sortBy === "amount_asc")  return (a.totalPrice || 0) - (b.totalPrice || 0);
     return 0;
   });
-
-  /* ══════════════════════════════════════════════════
-     CONFIRMED INVOICE MAP
-     Sirf confirmed orders ko date-ascending order mein
-     sequential number deta hai (1, 2, 3, ...)
-     Yahi number invoice number mein use hoga.
-     orders state pe depend karta hai taaki status change
-     hone par automatically update ho.
-  ══════════════════════════════════════════════════ */
-  const confirmedInvoiceMap = useMemo(() => {
-    const map = {};
-    let counter = 1;
-    // Purane confirmed orders pehle aayein → date ascending
-    const confirmedSorted = [...orders]
-      .filter((o) => CONFIRMED_STATUSES.includes(o.status?.toLowerCase()))
-      .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
-    confirmedSorted.forEach((o) => {
-      map[o._id] = counter++;
-    });
-    return map;
-  }, [orders]);
 
   const totalPages = Math.max(1, Math.ceil(sorted.length / ROWS));
   const paginated  = sorted.slice((page - 1) * ROWS, page * ROWS);
@@ -1967,15 +1976,18 @@ export default function VendorOrders() {
   const paymentModalOrder = paymentModalId ? orders.find((o) => o._id === paymentModalId) : null;
   const editModalOrder    = editModalId    ? orders.find((o) => o._id === editModalId)    : null;
 
-  const openInvoice = useCallback((order, confirmedSno) => {
-    const invoiceOrder = buildInvoiceOrder(order, confirmedSno);
+  const openInvoice = useCallback((order, sno) => {
+    // invoiceSeqNo = confirmed-only sequential number from the global map
+    const invoiceSeqNo = invoiceSeqMap[order._id] ?? null;
+    const invoiceOrder = buildInvoiceOrder(order, sno, invoiceSeqNo);
     navigate("/vendor/invoice", { state: { order: invoiceOrder } });
-  }, [navigate]);
+  }, [navigate, invoiceSeqMap]);
 
-  const openEstimate = useCallback((order, displaySno) => {
-    const invoiceOrder = buildInvoiceOrder(order, null); // estimate ke liye invoice no nahi chahiye
-    navigate("/vendor/estimate", { state: { order: { ...invoiceOrder, sno: displaySno } } });
-  }, [navigate]);
+  const openEstimate = useCallback((order, sno) => {
+    const invoiceSeqNo = invoiceSeqMap[order._id] ?? null;
+    const invoiceOrder = buildInvoiceOrder(order, sno, invoiceSeqNo);
+    navigate("/vendor/estimate", { state: { order: invoiceOrder } });
+  }, [navigate, invoiceSeqMap]);
 
   /* ── CSS ── */
   const css = `
@@ -2025,50 +2037,78 @@ export default function VendorOrders() {
       font-family:'Plus Jakarta Sans',sans-serif;font-size:12.5px;color:var(--text);
       background:var(--bg);outline:none;cursor:pointer}
     .vo-sel:focus{border-color:var(--blue)}
-    .vo-date-row{padding:10px 16px;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;gap:10px;flex-wrap:wrap;transition:background .2s}
+    /* ── Date filter ── */
+    .vo-date-row{
+      padding:10px 16px;border-bottom:1px solid #e2e8f0;
+      display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+      transition:background .2s;
+    }
     .vo-date-row.active{background:#eff6ff}
     .vo-date-row.inactive{background:#fafafa}
     .vo-date-lbl{font-size:11px;font-weight:700;color:#475569;white-space:nowrap;display:flex;align-items:center;gap:5px}
-    .vo-date-input{padding:6px 10px;border:1px solid #e2e8f0;border-radius:8px;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;color:#0f172a;background:#f8fafc;outline:none;cursor:pointer;height:32px;transition:all .2s}
+    .vo-date-input{
+      padding:6px 10px;border:1px solid #e2e8f0;border-radius:8px;
+      font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;color:#0f172a;
+      background:#f8fafc;outline:none;cursor:pointer;height:32px;
+      transition:all .2s;
+    }
     .vo-date-input:focus{border-color:#2563eb;background:#fff;box-shadow:0 0 0 3px rgba(37,99,235,.08)}
     .vo-date-input.active{border-color:#2563eb;background:#eff6ff;color:#1d4ed8;font-weight:700}
     .vo-date-sep{font-size:12px;color:#94a3b8;font-weight:600;user-select:none}
-    .vo-date-clear{display:inline-flex;align-items:center;gap:4px;padding:5px 10px;border-radius:8px;border:1px solid #fde68a;background:#fef3c7;color:#92400e;font-size:11px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:background .15s}
+    .vo-date-clear{
+      display:inline-flex;align-items:center;gap:4px;padding:5px 10px;
+      border-radius:8px;border:1px solid #fde68a;background:#fef3c7;
+      color:#92400e;font-size:11px;font-weight:700;cursor:pointer;
+      font-family:'Plus Jakarta Sans',sans-serif;transition:background .15s;
+    }
     .vo-date-clear:hover{background:#fde68a}
     .vo-date-info{font-size:11px;color:#2563eb;font-weight:600;margin-left:2px}
-    .vo-bulk{background:#eef2ff;border:1px solid #c7d2fe;border-radius:9px;padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+    .vo-bulk{background:#eef2ff;border:1px solid #c7d2fe;border-radius:9px;
+      padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
     .vo-table-wrap{overflow-x:auto}
     .vo-table{width:100%;border-collapse:collapse;min-width:1450px}
     .vo-table thead tr{border-bottom:1px solid var(--border);background:#f8fafc}
-    .vo-table th{padding:9px 10px;text-align:left;font-size:10.5px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--dim);white-space:nowrap}
+    .vo-table th{padding:9px 10px;text-align:left;font-size:10.5px;font-weight:700;
+      letter-spacing:.5px;text-transform:uppercase;color:var(--dim);white-space:nowrap}
     .vo-table tbody tr{border-bottom:1px solid var(--border);transition:background .1s}
     .vo-table tbody tr:last-child{border-bottom:none}
     .vo-table tbody tr:hover{background:#fafafa}
     .vo-table tbody tr.exp{background:#f0f7ff}
     .vo-table td{padding:9px 10px;font-size:13px;vertical-align:middle}
-    .s-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 9px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap}
+    .s-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 9px;border-radius:20px;
+      font-size:11px;font-weight:700;white-space:nowrap}
     .s-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
     .p-badge{padding:3px 8px;border-radius:6px;font-size:11px;font-weight:600}
-    .s-sel{padding:5px 8px;border-radius:7px;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:600;border:1px solid var(--border2);background:var(--white);outline:none;cursor:pointer;transition:all .2s}
+    .s-sel{padding:5px 8px;border-radius:7px;font-family:'Plus Jakarta Sans',sans-serif;
+      font-size:12px;font-weight:600;border:1px solid var(--border2);background:var(--white);
+      outline:none;cursor:pointer;transition:all .2s}
     .s-sel:focus{border-color:var(--blue);box-shadow:0 0 0 2px rgba(37,99,235,.1)}
     .vo-detail{background:#f8fafc;border-top:1px solid var(--border)}
     .vo-detail-inner{padding:16px 20px 18px}
     .vo-items-tbl{width:100%;border-collapse:collapse;font-size:12.5px}
-    .vo-items-tbl th{padding:6px 10px;background:#f1f5f9;border:1px solid var(--border);font-size:10.5px;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:.4px}
+    .vo-items-tbl th{padding:6px 10px;background:#f1f5f9;border:1px solid var(--border);
+      font-size:10.5px;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:.4px}
     .vo-items-tbl td{padding:8px 10px;border:1px solid var(--border);vertical-align:middle}
     .vo-item-img{width:36px;height:36px;object-fit:cover;border-radius:7px;border:1px solid var(--border)}
-    .vo-item-ph{width:36px;height:36px;background:#f1f5f9;border-radius:7px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:15px}
+    .vo-item-ph{width:36px;height:36px;background:#f1f5f9;border-radius:7px;border:1px solid var(--border);
+      display:flex;align-items:center;justify-content:center;font-size:15px}
     .vo-detail-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:14px}
     .vo-dbox{background:#fff;border:1px solid var(--border);border-radius:8px;padding:10px 12px}
     .vo-dbox-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--dim);margin-bottom:5px}
     .vo-dbox-val{font-size:13px;font-weight:600;color:var(--text)}
     .vo-dbox-sub{font-size:11px;color:var(--mid);margin-top:2px}
-    .vo-oid{font-family:monospace;font-size:12px;font-weight:700;color:var(--blue);background:var(--blueFade);padding:3px 7px;border-radius:5px;cursor:pointer}
+    .vo-oid{font-family:monospace;font-size:12px;font-weight:700;color:var(--blue);
+      background:var(--blueFade);padding:3px 7px;border-radius:5px;cursor:pointer}
     .vo-oid:hover{background:#dbeafe}
-    .vo-avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff}
-    .vo-exp-btn{width:26px;height:26px;border-radius:6px;border:1px solid var(--border);background:var(--bg);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:12px;transition:all .15s;color:var(--mid)}
+    .vo-avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);
+      display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff}
+    .vo-exp-btn{width:26px;height:26px;border-radius:6px;border:1px solid var(--border);
+      background:var(--bg);display:flex;align-items:center;justify-content:center;
+      cursor:pointer;font-size:12px;transition:all .15s;color:var(--mid)}
     .vo-exp-btn:hover{border-color:var(--blue);color:var(--blue);background:var(--blueFade)}
-    .btn{display:inline-flex;align-items:center;gap:5px;padding:6px 10px;border-radius:7px;font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:600;border:none;cursor:pointer;transition:all .2s;white-space:nowrap}
+    .btn{display:inline-flex;align-items:center;gap:5px;padding:6px 10px;border-radius:7px;
+      font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:600;
+      border:none;cursor:pointer;transition:all .2s;white-space:nowrap}
     .btn-blue{background:var(--blue);color:#fff}.btn-blue:hover{background:#1d4ed8}
     .btn-ghost{background:transparent;border:1px solid var(--border);color:var(--mid)}
     .btn-ghost:hover{border-color:var(--border2);color:var(--text);background:var(--bg)}
@@ -2077,16 +2117,22 @@ export default function VendorOrders() {
     .btn-violet{background:var(--violetFade);color:var(--violet);border:1px solid #ddd6fe}.btn-violet:hover{background:#ede9fe}
     .btn-slate{background:#1e293b;color:#f8fafc;border:1px solid #334155}.btn-slate:hover{background:#0f172a}
     .btn-orange{background:#fff7ed;color:#c2410c;border:1px solid #fed7aa}.btn-orange:hover{background:#ffedd5}
-    .vo-pager{padding:12px 16px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+    .vo-pager{padding:12px 16px;border-top:1px solid var(--border);
+      display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
     .vo-pager-info{font-size:12px;color:var(--mid)}
-    .pg-btn{width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:#fff;color:var(--mid);font-size:12px;cursor:pointer;transition:all .15px;display:flex;align-items:center;justify-content:center;font-family:'Plus Jakarta Sans',sans-serif}
+    .pg-btn{width:28px;height:28px;border-radius:6px;border:1px solid var(--border);
+      background:#fff;color:var(--mid);font-size:12px;cursor:pointer;transition:all .15px;
+      display:flex;align-items:center;justify-content:center;font-family:'Plus Jakarta Sans',sans-serif}
     .pg-btn:hover:not(:disabled){border-color:var(--blue);color:var(--blue)}
     .pg-btn.active{background:var(--blue);border-color:var(--blue);color:#fff;font-weight:700}
     .pg-btn:disabled{opacity:.35;cursor:not-allowed}
     .sh-row td{height:52px;padding:0 11px}
-    .shimmer{border-radius:5px;height:12px;background:linear-gradient(90deg,#f0f4f8 25%,#e2e8f0 50%,#f0f4f8 75%);background-size:300% 100%;animation:shim 1.4s ease infinite}
+    .shimmer{border-radius:5px;height:12px;background:linear-gradient(90deg,#f0f4f8 25%,#e2e8f0 50%,#f0f4f8 75%);
+      background-size:300% 100%;animation:shim 1.4s ease infinite}
     @keyframes shim{from{background-position:200% 0}to{background-position:-100% 0}}
-    .vo-toast{position:fixed;bottom:20px;right:20px;padding:10px 15px;border-radius:9px;font-size:12.5px;font-weight:500;display:flex;align-items:center;gap:8px;z-index:9999;white-space:nowrap;animation:toastUp .25s cubic-bezier(.22,1,.36,1);box-shadow:0 8px 24px rgba(0,0,0,.13)}
+    .vo-toast{position:fixed;bottom:20px;right:20px;padding:10px 15px;border-radius:9px;
+      font-size:12.5px;font-weight:500;display:flex;align-items:center;gap:8px;z-index:9999;
+      white-space:nowrap;animation:toastUp .25s cubic-bezier(.22,1,.36,1);box-shadow:0 8px 24px rgba(0,0,0,.13)}
     @keyframes toastUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
     .vo-toast.success{background:#052e16;color:#86efac;border:1px solid #166534}
     .vo-toast.error{background:#450a0a;color:#fca5a5;border:1px solid #991b1b}
@@ -2094,10 +2140,16 @@ export default function VendorOrders() {
     .vo-toast.success .toast-dot{background:#22c55e}
     .vo-toast.error .toast-dot{background:#ef4444}
     .vo-empty{padding:56px 20px;text-align:center}
-    .vo-error{padding:14px 16px;background:#fef2f2;border:1px solid #fecaca;border-radius:9px;color:#991b1b;font-size:13px;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+    .vo-error{padding:14px 16px;background:#fef2f2;border:1px solid #fecaca;border-radius:9px;
+      color:#991b1b;font-size:13px;margin-bottom:14px;display:flex;align-items:center;gap:8px}
     input[type=checkbox]{width:14px;height:14px;accent-color:var(--blue);cursor:pointer}
     .inv-actions{display:flex;flex-direction:column;gap:4px}
-    .sno-badge{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:6px;background:#f1f5f9;border:1px solid #e2e8f0;font-size:10.5px;font-weight:700;color:#64748b;font-family:monospace}
+    .sno-badge{
+      display:inline-flex;align-items:center;justify-content:center;
+      width:24px;height:24px;border-radius:6px;
+      background:#f1f5f9;border:1px solid #e2e8f0;
+      font-size:10.5px;font-weight:700;color:#64748b;font-family:monospace;
+    }
     @media(max-width:768px){
       .vo-stats{grid-template-columns:1fr 1fr}
       .vo-body{padding:14px 12px 56px}
@@ -2130,9 +2182,9 @@ export default function VendorOrders() {
 
           <div className="vo-stats">
             {[
-              { icon: "📦", bg: "#eff6ff", val: stats.total,       lbl: "Total Orders" },
-              { icon: "⏳", bg: "#fffbeb", val: stats.pending,     lbl: "Pending" },
-              { icon: "✅", bg: "#f0fdf4", val: stats.delivered,   lbl: "Delivered" },
+              { icon: "📦", bg: "#eff6ff", val: stats.total,     lbl: "Total Orders" },
+              { icon: "⏳", bg: "#fffbeb", val: stats.pending,   lbl: "Pending" },
+              { icon: "✅", bg: "#f0fdf4", val: stats.delivered, lbl: "Delivered" },
               { icon: "💰", bg: "#faf5ff", val: fC(stats.revenue), lbl: "Revenue" },
             ].map((s, i) => (
               <div className="vo-stat" key={i}>
@@ -2168,7 +2220,7 @@ export default function VendorOrders() {
 
           <div className="vo-card">
 
-            {/* ── Toolbar ── */}
+            {/* ── Toolbar: Search + Filters ── */}
             <div className="vo-toolbar">
               <div className="vo-tbl-left">
                 <div className="vo-search">
@@ -2198,18 +2250,30 @@ export default function VendorOrders() {
               </div>
             </div>
 
-            {/* ── Date Range Filter ── */}
+            {/* ── Date Range Filter Row ── */}
             <div className={`vo-date-row ${hasDateFilter ? "active" : "inactive"}`}>
               <span className="vo-date-lbl">📅 Date Range:</span>
-              <input type="date" className={`vo-date-input${dateFrom ? " active" : ""}`} value={dateFrom}
-                max={dateTo || undefined} title="From date"
-                onChange={(e) => { setDateFrom(e.target.value); setPage(1); }} />
+              <input
+                type="date"
+                className={`vo-date-input${dateFrom ? " active" : ""}`}
+                value={dateFrom}
+                max={dateTo || undefined}
+                title="From date"
+                onChange={(e) => { setDateFrom(e.target.value); setPage(1); }}
+              />
               <span className="vo-date-sep">→</span>
-              <input type="date" className={`vo-date-input${dateTo ? " active" : ""}`} value={dateTo}
-                min={dateFrom || undefined} title="To date"
-                onChange={(e) => { setDateTo(e.target.value); setPage(1); }} />
+              <input
+                type="date"
+                className={`vo-date-input${dateTo ? " active" : ""}`}
+                value={dateTo}
+                min={dateFrom || undefined}
+                title="To date"
+                onChange={(e) => { setDateTo(e.target.value); setPage(1); }}
+              />
               {hasDateFilter && (
-                <button className="vo-date-clear" onClick={clearDateFilter} title="Clear date filter">✕ Clear</button>
+                <button className="vo-date-clear" onClick={clearDateFilter} title="Clear date filter">
+                  ✕ Clear
+                </button>
               )}
               {hasDateFilter && (
                 <span className="vo-date-info">
@@ -2284,12 +2348,12 @@ export default function VendorOrders() {
                     const ps    = getPaymentStatus(order);
                     const initials = (order.user?.name || "U").split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase();
 
-                    /* ── Display S.No. (position-based, descending) ── */
-                    const displaySno = totalSorted - getGlobalIndex(pageLocalIdx);
+                    /* Display S.No. — descending position in sorted list */
+                    const sno = totalSorted - getGlobalIndex(pageLocalIdx);
 
-                    /* ── Invoice S.No. (confirmed-only, sequential) ── */
-                    const confirmedSno = confirmedInvoiceMap[order._id] ?? null;
-                    const isConfirmed  = confirmedSno !== null;
+                    /* Invoice sequence number — confirmed-only rank from global map */
+                    const invoiceSeqNo = invoiceSeqMap[order._id] ?? null;
+                    const isConfirmed  = CONFIRMED_STATUSES.includes(order.status?.toLowerCase());
 
                     return (
                       <React.Fragment key={order._id}>
@@ -2300,7 +2364,7 @@ export default function VendorOrders() {
                               onChange={() => setSelectedIds((p) => p.includes(order._id) ? p.filter((x) => x !== order._id) : [...p, order._id])} />
                           </td>
                           <td style={{ textAlign: "center" }}>
-                            <span className="sno-badge">{displaySno}</span>
+                            <span className="sno-badge">{sno}</span>
                           </td>
                           <td>
                             <span className="vo-oid" onClick={() => setExpandedRow(isExp ? null : order._id)}>{shortId(order._id)}</span>
@@ -2363,28 +2427,16 @@ export default function VendorOrders() {
                           </td>
                           <td>
                             <div className="inv-actions">
-                              {/* ── Invoice Button: sirf confirmed orders ke liye active ── */}
                               <button
                                 className="btn btn-slate"
-                                onClick={() => isConfirmed && openInvoice(order, confirmedSno)}
+                                onClick={() => isConfirmed && openInvoice(order, sno)}
                                 disabled={!isConfirmed}
-                                title={
-                                  isConfirmed
-                                    ? `Invoice: ${buildInvoiceNo(confirmedSno, order.createdAt)}`
-                                    : "Invoice sirf Accept hone ke baad banega"
-                                }
-                                style={{
-                                  opacity: isConfirmed ? 1 : 0.38,
-                                  cursor: isConfirmed ? "pointer" : "not-allowed",
-                                }}
+                                title={!isConfirmed ? "Invoice sirf confirmed orders ke liye generate hoti hai" : `Invoice: ${buildInvoiceNo(invoiceSeqNo, order.createdAt)}`}
+                                style={{ opacity: isConfirmed ? 1 : 0.4, cursor: isConfirmed ? "pointer" : "not-allowed" }}
                               >
-                                🧾 {isConfirmed ? "Invoice" : "—"}
+                                🧾 Invoice
                               </button>
-                              {/* ── Estimate Button: sabhi orders ke liye ── */}
-                              <button
-                                className="btn btn-orange"
-                                onClick={() => openEstimate(order, displaySno)}
-                              >
+                              <button className="btn btn-orange" onClick={() => openEstimate(order, sno)}>
                                 📋 Estimate
                               </button>
                             </div>
@@ -2400,7 +2452,7 @@ export default function VendorOrders() {
                           <tr><td colSpan={15} style={{ padding: 0 }}>
                             <div className="vo-detail">
                               <div className="vo-detail-inner">
-                                {/* ── Invoice number preview in expanded row ── */}
+                                {/* Invoice number preview in expanded row */}
                                 <div style={{
                                   display: "inline-flex", alignItems: "center", gap: 6,
                                   background: "#f1f5f9", border: "1px solid #e2e8f0",
@@ -2408,20 +2460,17 @@ export default function VendorOrders() {
                                   fontSize: 11, fontWeight: 700, color: "#475569",
                                   marginBottom: 10,
                                 }}>
-                                  <span style={{ fontFamily: "monospace", fontSize: 12, color: "#2563eb" }}>#{displaySno}</span>
+                                  <span style={{ fontFamily: "monospace", fontSize: 12, color: "#2563eb" }}>#{sno}</span>
                                   <span style={{ width: 1, height: 12, background: "#e2e8f0", display: "inline-block" }} />
                                   <span>{shortId(order._id)}</span>
                                   <span style={{ color: "#94a3b8", fontWeight: 500 }}>· {fmt(order.createdAt)}</span>
                                   <span style={{ width: 1, height: 12, background: "#e2e8f0", display: "inline-block" }} />
-                                  {/* Invoice No: sirf confirmed orders ke liye */}
-                                  {isConfirmed ? (
+                                  {isConfirmed && invoiceSeqNo ? (
                                     <span style={{ fontFamily: "monospace", fontSize: 10.5, color: "#7c3aed" }}>
-                                      {buildInvoiceNo(confirmedSno, order.createdAt)}
+                                      {buildInvoiceNo(invoiceSeqNo, order.createdAt)}
                                     </span>
                                   ) : (
-                                    <span style={{ fontSize: 10.5, color: "#94a3b8", fontStyle: "italic" }}>
-                                      Invoice: Accept hone par milega
-                                    </span>
+                                    <span style={{ color: "#94a3b8", fontStyle: "italic", fontSize: 10.5 }}>Not confirmed yet</span>
                                   )}
                                 </div>
 
